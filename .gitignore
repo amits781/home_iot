@@ -39,7 +39,7 @@ logs
 node_modules
 bower_components
 build
-react_app/package-lock.json
+**/package-lock.json
 .env
 
 *.sublime*
