@@ -1,0 +1,12 @@
+server:
+  port: 8080
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${ISS_URI}
+          jwk-set-uri: ${JWK_URI}
+#          audience: your-audience
+          
+
