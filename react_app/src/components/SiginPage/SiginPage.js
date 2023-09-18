@@ -11,7 +11,7 @@ import { SignIn } from "@clerk/clerk-react";
 function Copyright(props) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      AIDYN{' '}
+      AIDYN AUTOMATION{' '}
       {new Date().getFullYear()}
       {' Website.'}
     </Typography>
