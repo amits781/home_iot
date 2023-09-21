@@ -7,7 +7,6 @@ spring:
         jwt:
           issuer-uri: ${ISS_URI}
           jwk-set-uri: ${JWK_URI}
-#          audience: your-audience
 # Configure Actuator Endpoints
 management:
   endpoints:
