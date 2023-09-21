@@ -8,5 +8,11 @@ spring:
           issuer-uri: ${ISS_URI}
           jwk-set-uri: ${JWK_URI}
 #          audience: your-audience
-          
+# Configure Actuator Endpoints
+management:
+  endpoints:
+    web:
+      base-path: /iot-actuator
+      exposure:
+        include: health, info         
 
