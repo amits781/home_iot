@@ -53,7 +53,7 @@ app.get('/iot-actuator/health', (req, res) => {
   // You can add more complex health checks here if needed
   const healthStatus = {
     status: 'UP',
-    version: '1.0.2',
+    version: '1.0.0',
   };
   res.json(healthStatus);
 });
