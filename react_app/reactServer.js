@@ -42,7 +42,7 @@ app.use((req, res, next) => {
     responseTime: `${res.responseTime} ms`
   };
 
-  logger.info("Request Log", logData);
+  logger.info("Request Log - IP: "+logData.ip+", URL: "+logData.url+", Status Code: "+logData.statusCode, logData);
   next();
 });
 
