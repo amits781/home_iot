@@ -3,11 +3,9 @@ package com.aidyn.iot.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.aidyn.iot.annotation.RequiresOperateRole;
 import com.aidyn.iot.annotation.ScopeValidator;
 import com.aidyn.iot.service.MotorService;
 import com.aidyn.iot.utils.MotorConstants;
@@ -33,20 +31,20 @@ public class MainController {
 	public ResponseEntity<Object> turnOnMotor() {
 		log.info("Motor on requested");
 		return ResponseHandler.generateResponse(HttpStatus.OK,
-				service.makeArduinoCall(MotorConstants.TURN_ON_API));
+				service.operateMotor(MotorConstants.TURN_ON_API));
 	}
 
 	@GetMapping("/motorOff")
 	public ResponseEntity<Object> turnOffMotor() {
 		log.info("Motor off requested");
 		return ResponseHandler.generateResponse(HttpStatus.OK,
-				service.makeArduinoCall(MotorConstants.TURN_OFF_API));
+				service.operateMotor(MotorConstants.TURN_OFF_API));
 	}
 
 	@GetMapping("/motorStatus")
 	public ResponseEntity<Object> getMotorStatus() {
 		log.info("Motor status requested");
 		return ResponseHandler.generateResponse(HttpStatus.OK,
-				service.makeArduinoCall(MotorConstants.STATUS_API));
+				service.operateMotor(MotorConstants.STATUS_API));
 	}
 }

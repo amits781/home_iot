@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -20,10 +20,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 import com.aidyn.iot.annotation.ScopeValidator;
+import com.aidyn.iot.dao.UserDao;
+import com.aidyn.iot.entity.User;
 import com.aidyn.iot.exception.HomeIotException;
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.nimbusds.jose.shaded.json.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +32,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AuthorizationAspect {
 
-//  @Autowired
-//  private HttpServletRequest httpServletRequest;
+	@Autowired
+	private HttpServletRequest httpServletRequest;
 
 	@Autowired
-	private Gson gson;
+	private UserDao userDao;
 
 	private final static String FORBIDDEN = "FORBIDDEN";
 
@@ -73,7 +72,19 @@ public class AuthorizationAspect {
 		}
 
 		String sub = principal.getClaim("sub");
+		String email = principal.getClaim("email");
+		String name = principal.getClaim("name");
 		log.info("Sub:{}",sub);
+		Optional<User> dbUser = userDao.getUserByEmail(email);
+		User user;
+		if(dbUser.isEmpty()) {
+			user = User.builder().displayName(name).regEmail(email).build();
+			user = userDao.saveUser(user);
+			log.info("Added new user: id {} || name {}",user.getId(), user.getDisplayName());
+		} else {
+			user = dbUser.get();
+		}
+		httpServletRequest.setAttribute("USER", user);
 
 		return joinPoint.proceed();
 	}
