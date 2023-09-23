@@ -23,6 +23,7 @@ target
 *.classpath
 *.factorypath
 *.project
+.settings
 newRelic.txt
 newrelic.yml
 

@@ -1,12 +1,37 @@
 server:
   port: 8080
 spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/${DATABASE}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5Dialect
   security:
     oauth2:
       resourceserver:
         jwt:
           issuer-uri: ${ISS_URI}
           jwk-set-uri: ${JWK_URI}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SENDER_EMAIL}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          starttls:
+            enable: true
+          auth: true
+          socketFactory:
+            port: 465
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+            
 # Configure Actuator Endpoints
 management:
   endpoints:
@@ -14,4 +39,5 @@ management:
       base-path: /iot-actuator
       exposure:
         include: health, info         
+  
 
