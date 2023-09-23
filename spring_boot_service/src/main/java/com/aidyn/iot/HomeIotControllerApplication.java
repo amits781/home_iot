@@ -10,8 +10,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @EnableScheduling
 public class HomeIotControllerApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(HomeIotControllerApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(HomeIotControllerApplication.class, args);
+  }
 
 }

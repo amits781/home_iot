@@ -6,12 +6,9 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
 import java.util.Locale;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-
 import com.aidyn.iot.entity.User;
 
 public class Utils {
@@ -26,18 +23,20 @@ public class Utils {
         ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
     return (User) httpServletRequest.getAttribute("USER");
   }
-  
+
   public static String getFormatedDate(LocalDateTime date) {
-	// Create a custom formatter
-      DateTimeFormatter formatter = new DateTimeFormatterBuilder()
-              .appendPattern("d ") // Day of month without leading zeros
-              .appendText(ChronoField.MONTH_OF_YEAR, TextStyle.FULL) // Full month name
-              .appendPattern(", yyyy 'at' h:mma") // Year, 'at' keyword, hour, minute, and AM/PM
-              .toFormatter(Locale.ENGLISH); // Use English locale for month names
+    DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+        // Day of month without leading zeros
+        .appendPattern("d ")
+        // Full month name
+        .appendText(ChronoField.MONTH_OF_YEAR, TextStyle.FULL)
+        // Year, 'at' keyword, hour, minute, and AM/PM
+        .appendPattern(", yyyy 'at' h:mma")
+        // Use English locale for month names
+        .toFormatter(Locale.ENGLISH);
 
-      // Format the LocalDateTime to a human-readable string
-      return date.format(formatter);
+    // Format the LocalDateTime to a human-readable string
+    return date.format(formatter);
   }
-
 
 }
