@@ -51,15 +51,15 @@ public class MotorService {
 			device.setOperatedBy(Utils.getCurrentUser().getDisplayName());
 			device.setUpdatedOn(LocalDateTime.now());
 			arduinoService.saveDevice(device);
-			sendEmailToAllUser(device);
+			sendEmailToAllUser(device, "Motor");
 		} 
 		return status;
 	}
 
-	public void sendEmailToAllUser(ArduinoDevice device) {
+	public void sendEmailToAllUser(ArduinoDevice device, String targetDevice) {
 		List<User> users = userDao.getAllUser();
-		String emailMessage = String.format(MotorConstants.EMAIL_MESSAGE, "Motor", device.getDeviceStatus().name(),
-				device.getUpdatedOn(), device.getOperatedBy());
+		String emailMessage = String.format(MotorConstants.EMAIL_MESSAGE, targetDevice, device.getDeviceStatus().name(),
+			Utils.getFormatedDate(device.getUpdatedOn()), device.getOperatedBy());
 		users.forEach(user -> {
 			try {
 				emailService.sendEmail(user.getRegEmail(), MotorConstants.EMAIL_SUBJECT, emailMessage);
@@ -101,7 +101,10 @@ public class MotorService {
 			MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
 			return motorStatus;
 		} catch (Exception e) {
-			return MotorStatus.builder().status(2).build();
+			if(!e.getMessage().contains("java.net.SocketException"))
+				return MotorStatus.builder().status(2).build();
+			else
+				return MotorStatus.builder().status(3).build();
 		}
 
 	}

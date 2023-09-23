@@ -25,7 +25,6 @@ public class SchedulerService {
 	@Autowired
 	MotorService motorService;
 
-
 	@PostConstruct
 	public void initArduinoDevice() {
 		log.info("Initial Device check");
@@ -44,16 +43,20 @@ public class SchedulerService {
 	@Scheduled(fixedRate = 5000) // Run every 5 seconds
 	public void runScheduledTask() {
 		MotorStatus motorStatus = motorService.getDeviceStatus();
-		ArduinoDevice.DeviceStatus currentStatus = getDeviceStatus(motorStatus);
-		ArduinoDevice device = arduinoService.getDevice();
-		if (!device.getDeviceStatus().equals(currentStatus)) {
-			log.info("Device status changed from {} to {}", device.getDeviceStatus().getValue(),
-					currentStatus.getValue());
-			device.setDeviceStatus(currentStatus);
-			device.setUpdatedOn(LocalDateTime.now());
-			device.setOperatedBy("SYSTEM");
-			device = arduinoService.saveDevice(device);
-			motorService.sendEmailToAllUser(device);
+		if (motorStatus.getStatus() != 3) {
+			ArduinoDevice.DeviceStatus currentStatus = getDeviceStatus(motorStatus);
+			ArduinoDevice device = arduinoService.getDevice();
+			if (!device.getDeviceStatus().equals(currentStatus)) {
+				log.info("Device status changed from {} to {}", device.getDeviceStatus().getValue(),
+						currentStatus.getValue());
+				String deviceType = (currentStatus.equals(DeviceStatus.ERROR)
+						|| device.getDeviceStatus().equals(DeviceStatus.ERROR)) ? "Power" : "Motor";
+				device.setDeviceStatus(currentStatus);
+				device.setUpdatedOn(LocalDateTime.now());
+				device.setOperatedBy("SYSTEM");
+				device = arduinoService.saveDevice(device);
+				motorService.sendEmailToAllUser(device, deviceType);
+			}
 		}
 	}
 
