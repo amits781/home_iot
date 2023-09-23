@@ -20,15 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
-  static final String MESSAGE =
-      "Unable to process your request at this moment, Please contact Administartor for more details.";
+	static final String MESSAGE = "Unable to process your request at this moment, Please contact Administartor for more details.";
 
-  @Override
-  protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-      HttpHeaders headers, HttpStatus status, WebRequest request) {
-    Map<String, String> errors = new HashMap<>();
+	@Override
+	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+			HttpHeaders headers, HttpStatus status, WebRequest request) {
+		Map<String, String> errors = new HashMap<>();
 
-    // @formatter:off
+	// @formatter:off
     ex.getBindingResult()
         .getAllErrors()
         .forEach(
@@ -39,20 +38,23 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
             });
     // @formatter:on
 
-    return ResponseHandler.generateResponse(HttpStatus.BAD_REQUEST, errors);
-  }
+		return ResponseHandler.generateResponse(HttpStatus.BAD_REQUEST, errors);
+	}
 
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Object> handleInvalidRequest(IllegalArgumentException exception) {
+		log.error("Invalid request received ", exception.getMessage());
+		return ResponseHandler.generateResponse(HttpStatus.BAD_REQUEST, "Invalid request. Please check your request.");
+	}
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<Object> handleGenericException(Exception exception) {
-    log.error("handleGenericException ", exception);
-    return ResponseHandler.generateResponse(HttpStatus.INTERNAL_SERVER_ERROR, MESSAGE);
-  }
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Object> handleGenericException(Exception exception) {
+		log.error("handleGenericException ", exception);
+		return ResponseHandler.generateResponse(HttpStatus.INTERNAL_SERVER_ERROR, MESSAGE);
+	}
 
-
-  @ExceptionHandler(HomeIotException.class)
-  public ResponseEntity<Object> handleUserManagementException(HomeIotException exception) {
-    return ResponseHandler.generateResponse(exception.getStatus(),
-        exception.getMessage());
-  }
+	@ExceptionHandler(HomeIotException.class)
+	public ResponseEntity<Object> handleUserManagementException(HomeIotException exception) {
+		return ResponseHandler.generateResponse(exception.getStatus(), exception.getMessage());
+	}
 }
