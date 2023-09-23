@@ -99,10 +99,8 @@ public class MotorService {
 			String response = restTemplate.getForObject(MotorConstants.ARDUINO_HOST + "/S", String.class);
 
 			MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
-			log.info("Motor Status Response: {}", response);
 			return motorStatus;
 		} catch (Exception e) {
-			log.error("Error getting device status: {}", e.getMessage());
 			return MotorStatus.builder().status(2).build();
 		}
 
