@@ -154,11 +154,11 @@ public class MotorService {
       } catch (Exception e) {
         retryCount++;
         if (retryCount == maxRetry) {
-          if (!e.getCause().getClass().getName()
-              .equalsIgnoreCase("java.net.SocketTimeoutException")) {
-            log.error("Error occured in scheduler get device status: {}", e.getMessage());
-            log.info("classname: {}", e.getCause().getClass().getName());
-          }
+          // if (!e.getCause().getClass().getName()
+          // .equalsIgnoreCase("java.net.SocketTimeoutException")) {
+          log.error("Error occured in scheduler get device status: {}", e.getMessage());
+          log.info("classname: {}", e.getCause().getClass().getName());
+          // }
         }
       } finally {
         semaphore.release(); // Release the permit
