@@ -41,7 +41,6 @@ public class MainController {
   @GetMapping("/motorStatus")
   public ResponseEntity<Object> getMotorStatus() {
     log.info("Motor status requested");
-    return ResponseHandler.generateResponse(HttpStatus.OK,
-        service.operateMotor(MotorConstants.STATUS_API));
+    return ResponseHandler.generateResponse(HttpStatus.OK, service.getMotorStatus());
   }
 }

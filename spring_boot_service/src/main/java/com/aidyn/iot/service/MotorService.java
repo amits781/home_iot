@@ -2,6 +2,7 @@ package com.aidyn.iot.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,9 +49,15 @@ public class MotorService {
       device.setOperatedBy(Utils.getCurrentUser().getDisplayName());
       device.setUpdatedOn(LocalDateTime.now());
       arduinoService.saveDevice(device);
-      sendEmailToAllUser(device, MotorConstants.DEVICE_TYPE_MOTOR);
+      sendEmailToAllUserAsync(device, MotorConstants.DEVICE_TYPE_MOTOR);
     }
     return status;
+  }
+
+  public MotorStatus getMotorStatus() {
+    ArduinoDevice device = arduinoService.getDevice();
+    Integer status = Integer.parseInt(device.getDeviceStatus().getValue());
+    return MotorStatus.builder().status(status).build();
   }
 
   public void sendEmailToAllUser(ArduinoDevice device, String targetDevice) {
@@ -68,6 +75,35 @@ public class MotorService {
       }
     });
 
+  }
+
+  public CompletableFuture<Void> sendEmailToAllUserAsync(ArduinoDevice device,
+      String targetDevice) {
+    List<User> users = userDao.getAllUser();
+    String deviceStatusString = getDeviceStatusString(device, targetDevice);
+    deviceStatusString = deviceStatusString.toLowerCase();
+    String emailMessage = String.format(MotorConstants.EMAIL_MESSAGE, targetDevice,
+        deviceStatusString, Utils.getFormatedDate(device.getUpdatedOn()), device.getOperatedBy());
+
+    // Create a CompletableFuture that is initially completed
+    CompletableFuture<Void> allEmailsSent = CompletableFuture.completedFuture(null);
+
+    for (User user : users) {
+      final String userEmail = user.getRegEmail();
+      final String userName = user.getDisplayName();
+
+      // For each user, chain the email sending task
+      allEmailsSent = allEmailsSent.thenRunAsync(() -> {
+        try {
+          emailService.sendEmail(userEmail, MotorConstants.EMAIL_SUBJECT, emailMessage);
+          log.info("email sent to : {}", userName);
+        } catch (MessagingException e) {
+          log.error("Email to {} send failed: {}", userName, e.getMessage());
+        }
+      });
+    }
+
+    return allEmailsSent;
   }
 
   private String getDeviceStatusString(ArduinoDevice device, String targetDevice) {
@@ -102,8 +138,12 @@ public class MotorService {
         return motorStatus;
       } catch (Exception e) {
         retryCount++;
-        if (retryCount == 2) {
-          log.error("Error occured in scheduler get device status: {}", e.getMessage());
+        if (retryCount == maxRetry) {
+          if (!e.getCause().getClass().getName()
+              .equalsIgnoreCase("java.net.SocketTimeoutException")) {
+            log.error("Error occured in scheduler get device status: {}", e.getMessage());
+            log.info("classname: {}", e.getCause().getClass().getName());
+          }
         }
       }
     }
