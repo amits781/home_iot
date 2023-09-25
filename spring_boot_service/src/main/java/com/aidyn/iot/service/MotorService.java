@@ -61,9 +61,13 @@ public class MotorService {
   }
 
   public MotorStatus getMotorStatus() {
+    User currUser = Utils.getCurrentUser();
+    log.info("Operation get status initiated for user {}.", currUser.getDisplayName());
     ArduinoDevice device = arduinoService.getDevice();
     Integer status = Integer.parseInt(device.getDeviceStatus().getValue());
-    return MotorStatus.builder().status(status).build();
+    MotorStatus motorStatus = MotorStatus.builder().status(status).build();
+    log.info("Operation get status response from db {}.", motorStatus);
+    return motorStatus;
   }
 
   public void sendEmailToAllUser(ArduinoDevice device, String targetDevice) {

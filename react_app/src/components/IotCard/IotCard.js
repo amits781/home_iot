@@ -192,7 +192,7 @@ export default function IotCard() {
             alignItems={{ xs: 'center' }}
           >
             <Box>
-              <HeatPumpOutlinedIcon sx={{ fontSize: '80px' }}  color={(iotState.buttonOnCondition || iotState.buttonOnDisable) ? "success" : "error"}/>
+              <HeatPumpOutlinedIcon sx={{ fontSize: '80px' }} className={(iotState.buttonOnCondition || iotState.buttonOnDisable) ? "glow-success" : "glow-error"} />
             </Box>
             <Box>
               <Typography sx={{
