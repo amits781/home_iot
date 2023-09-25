@@ -3,6 +3,7 @@ package com.aidyn.iot.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MotorService {
 
+  private static final Semaphore semaphore = new Semaphore(1, true);
+
   @Autowired
   RestTemplate restTemplate;
 
@@ -39,14 +42,17 @@ public class MotorService {
   UserDao userDao;
 
   public MotorStatus operateMotor(String operation) {
+    User currUser = Utils.getCurrentUser();
+    log.info("Operation {} initiated for user {}.", operation, currUser.getDisplayName());
     List<String> operationToEmail = List.of("H", "L");
     MotorStatus status = makeArduinoCall(operation);
+    log.info("Operation {} response from arduino {}.", operation, status);
     if (operationToEmail.contains(operation)) {
       DeviceStatus deviceStatus =
           operation.equalsIgnoreCase("H") ? DeviceStatus.ON : DeviceStatus.OFF;
       ArduinoDevice device = arduinoService.getDevice();
       device.setDeviceStatus(deviceStatus);
-      device.setOperatedBy(Utils.getCurrentUser().getDisplayName());
+      device.setOperatedBy(currUser.getDisplayName());
       device.setUpdatedOn(LocalDateTime.now());
       arduinoService.saveDevice(device);
       sendEmailToAllUserAsync(device, MotorConstants.DEVICE_TYPE_MOTOR);
@@ -115,16 +121,21 @@ public class MotorService {
   public MotorStatus makeArduinoCall(String operation) {
 
     try {
+      semaphore.acquire();
       // Make the GET request to the Arduino device.
       String response =
           restTemplate.getForObject(MotorConstants.ARDUINO_HOST + "/" + operation, String.class);
       MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
-      log.info("Motor Status Response: {}", response);
       return motorStatus;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      log.error("Thread interupted: {}", e.getCause().getMessage());
     } catch (Exception e) {
       log.error("Error: {}", e.getMessage());
-      throw new HomeIotException("Device Unreachable", HttpStatus.EXPECTATION_FAILED);
+    } finally {
+      semaphore.release(); // Release the permit
     }
+    throw new HomeIotException("Device Unreachable", HttpStatus.EXPECTATION_FAILED);
   }
 
   public MotorStatus getDeviceStatus() {
@@ -132,10 +143,14 @@ public class MotorService {
     int maxRetry = 2;
     while (retryCount < maxRetry) {
       try {
+        semaphore.acquire();
         String response = restTemplate.getForObject(
             MotorConstants.ARDUINO_HOST + "/" + MotorConstants.STATUS_API, String.class);
         MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
         return motorStatus;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        log.error("Thread interupted: {}", e.getCause().getMessage());
       } catch (Exception e) {
         retryCount++;
         if (retryCount == maxRetry) {
@@ -145,6 +160,8 @@ public class MotorService {
             log.info("classname: {}", e.getCause().getClass().getName());
           }
         }
+      } finally {
+        semaphore.release(); // Release the permit
       }
     }
     return MotorStatus.builder().status(2).build();

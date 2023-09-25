@@ -68,10 +68,8 @@ public class AuthorizationAspect {
       throw new HomeIotException(FORBIDDEN, HttpStatus.FORBIDDEN);
     }
 
-    String sub = principal.getClaim("sub");
     String email = principal.getClaim("email");
     String name = principal.getClaim("name");
-    log.info("Sub:{}", sub);
     Optional<User> dbUser = userDao.getUserByEmail(email);
     User user;
     if (dbUser.isEmpty()) {
