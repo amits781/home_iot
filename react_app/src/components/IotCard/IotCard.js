@@ -191,7 +191,10 @@ export default function IotCard() {
             spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
             alignItems={{ xs: 'center' }}
           >
-            <HeatPumpOutlinedIcon sx={{ fontSize: '80px' }} />
+            <Box>
+              <HeatPumpOutlinedIcon sx={{ fontSize: '80px' }} />
+              <LinearProgress className={(iotState.buttonOnCondition || iotState.buttonOnDisable) ? "glow-success" : "glow-error"} variant="determinate" value={100} color={(iotState.buttonOnCondition || iotState.buttonOnDisable) ? "success" : "error"} />
+            </Box>
             <Box>
               <Typography sx={{
                 mb: 1.5, textAlign: {
@@ -211,12 +214,10 @@ export default function IotCard() {
                   lg: 'left',
                 }
               }} variant="body2">
-                Motor Status is: {iotState.deviceStatus? iotState.motorStatus ? 'On' : 'Off': 'N/A'}
+                Motor Status is: {iotState.deviceStatus ? iotState.motorStatus ? 'On' : 'Off' : 'N/A'}
               </Typography>
             </Box>
-
           </Stack>
-
         </CardContent>
         <CardActions>
           <Stack
@@ -226,8 +227,44 @@ export default function IotCard() {
             spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
             alignItems={{ xs: 'center' }}
           >
-            <Button variant="contained" onClick={handleMotorOnButtonClick} disabled={(iotState.buttonOnCondition || iotState.buttonOnDisable)} size="small" color="success">Turn On</Button>
-            <Button variant="contained" onClick={handleMotorOffButtonClick} disabled={(!iotState.buttonOnCondition || iotState.buttonOffDisable)} size="small" color="error">
+            <Button
+              variant="contained"
+              onClick={handleMotorOnButtonClick}
+              disabled={(iotState.buttonOnCondition || iotState.buttonOnDisable)}
+              sx={{
+                width: {
+                  xs: 'inherit',
+                  sm: 'inherit',
+                  md: 'inherit',
+                  lg: 'inherit',
+                },
+                margin: {
+                  xs: '20px 5px',
+                }
+              }}
+              // size={{xs : "large", lg: "small"}}
+              // fullWidth={{xs : true, lg: false}}
+              color="success">
+              Turn On</Button>
+            <Button
+              variant="contained"
+              onClick={handleMotorOffButtonClick}
+              disabled={(!iotState.buttonOnCondition || iotState.buttonOffDisable)}
+              sx={{
+                width: {
+                  xs: 'inherit',
+                  sm: 'inherit',
+                  md: 'inherit',
+                  lg: 'inherit',
+                },
+                margin: {
+                  xs: '20px 5px !important',
+                  lg: '0px 5px'
+                }
+              }}
+              // size="small"
+              // fullWidth={true}
+              color="error">
               Turn Off
             </Button>
           </Stack>

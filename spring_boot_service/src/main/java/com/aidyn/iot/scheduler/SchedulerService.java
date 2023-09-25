@@ -3,6 +3,7 @@ package com.aidyn.iot.scheduler;
 import java.time.LocalDateTime;
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.aidyn.iot.dto.MotorStatus;
@@ -24,6 +25,9 @@ public class SchedulerService {
   @Autowired
   MotorService motorService;
 
+  @Value("${SCHEDULER_ENABLED:true}")
+  private Boolean isSchedulerEnabled;
+
   @PostConstruct
   public void initArduinoDevice() {
     log.info("Initial Device check");
@@ -41,18 +45,22 @@ public class SchedulerService {
 
   @Scheduled(fixedRate = 10000) // Run every 10 seconds
   public void runScheduledTask() {
-    MotorStatus motorStatus = motorService.getDeviceStatus();
-    ArduinoDevice.DeviceStatus currentStatus = getDeviceStatus(motorStatus);
-    ArduinoDevice device = arduinoService.getDevice();
-    if (!device.getDeviceStatus().equals(currentStatus)) {
-      log.info("Device status changed from {} to {}", device.getDeviceStatus().getValue(),
-          currentStatus.getValue());
-      String deviceType = getDeviceTypeString(currentStatus, device);
-      device.setDeviceStatus(currentStatus);
-      device.setUpdatedOn(LocalDateTime.now());
-      device.setOperatedBy("SYSTEM");
-      device = arduinoService.saveDevice(device);
-      motorService.sendEmailToAllUser(device, deviceType);
+    if (isSchedulerEnabled) {
+      MotorStatus motorStatus = motorService.getDeviceStatus();
+      ArduinoDevice.DeviceStatus currentStatus = getDeviceStatus(motorStatus);
+      ArduinoDevice device = arduinoService.getDevice();
+      if (!device.getDeviceStatus().equals(currentStatus)) {
+        log.info("Device status changed from {} to {}", device.getDeviceStatus().getValue(),
+            currentStatus.getValue());
+        String deviceType = getDeviceTypeString(currentStatus, device);
+        device.setDeviceStatus(currentStatus);
+        device.setUpdatedOn(LocalDateTime.now());
+        device.setOperatedBy("SYSTEM");
+        device = arduinoService.saveDevice(device);
+        motorService.sendEmailToAllUser(device, deviceType);
+      }
+    } else {
+      log.info("Scheduler Turned off.");
     }
   }
 

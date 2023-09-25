@@ -26,21 +26,18 @@ public class MainController {
 
   @GetMapping("/motorOn")
   public ResponseEntity<Object> turnOnMotor() {
-    log.info("Motor on requested");
     return ResponseHandler.generateResponse(HttpStatus.OK,
         service.operateMotor(MotorConstants.TURN_ON_API));
   }
 
   @GetMapping("/motorOff")
   public ResponseEntity<Object> turnOffMotor() {
-    log.info("Motor off requested");
     return ResponseHandler.generateResponse(HttpStatus.OK,
         service.operateMotor(MotorConstants.TURN_OFF_API));
   }
 
   @GetMapping("/motorStatus")
   public ResponseEntity<Object> getMotorStatus() {
-    log.info("Motor status requested");
     return ResponseHandler.generateResponse(HttpStatus.OK, service.getMotorStatus());
   }
 }
