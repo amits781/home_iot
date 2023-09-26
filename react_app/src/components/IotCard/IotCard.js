@@ -107,10 +107,10 @@ export default function IotCard() {
           const responseOk = responseData.status === 200 ? true : false;
 
           if (!(responseMessageValue === "")) {
-            const deviceStatusValue = responseOk;
+            const deviceStatusValue = responseData.payload.status === 3? false: true;
             const buttonOffDisableValue = !deviceStatusValue;
             const buttonOnDisableValue = !deviceStatusValue;
-            const motorStatusValue = responseData.payload.status === 0 ? false : true;
+            const motorStatusValue = responseData.payload.status === 1 ? true : false;
             const buttonOnConditionValue = deviceStatusValue ? motorStatusValue : false;
 
             setIotState({
