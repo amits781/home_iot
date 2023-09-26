@@ -6,7 +6,8 @@ import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import HeatPumpOutlinedIcon from '@mui/icons-material/HeatPumpOutlined';
+import CycloneOutlinedIcon from '@mui/icons-material/CycloneOutlined';
+
 import { Stack } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { getHeadersFromToken, hostUrl } from '../Utils/Utils';
@@ -106,8 +107,8 @@ export default function IotCard() {
           const responseMessageValue = responseData.payload;
           const responseOk = responseData.status === 200 ? true : false;
 
-          if (!(responseMessageValue === "")) {
-            const deviceStatusValue = responseData.payload.status === 3? false: true;
+          if (!(responseMessageValue === "") && responseOk) {
+            const deviceStatusValue = responseData.payload.status === 2 ? false: true;
             const buttonOffDisableValue = !deviceStatusValue;
             const buttonOnDisableValue = !deviceStatusValue;
             const motorStatusValue = responseData.payload.status === 1 ? true : false;
@@ -180,7 +181,7 @@ export default function IotCard() {
             spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
           >
             <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-              Device status: {iotState.deviceStatus ? 'On' : iotState.responseMessage}
+              Device status: {iotState.deviceStatus ? 'On' : 'Device not Reachable'}
             </Typography>
             <IconButton aria-label="refresh" onClick={handleRefreshButtonClick} className={refreshButtonClass}>
               <CachedRoundedIcon />
@@ -192,7 +193,7 @@ export default function IotCard() {
             alignItems={{ xs: 'center' }}
           >
             <Box>
-              <HeatPumpOutlinedIcon sx={{ fontSize: '80px' }} className={(iotState.buttonOnCondition || iotState.buttonOnDisable) ? "glow-success" : "glow-error"} />
+              <CycloneOutlinedIcon sx={{ fontSize: '80px', borderRadius: '50px' }} className={(iotState.deviceStatus && (iotState.buttonOnCondition || iotState.buttonOnDisable)) ? "start-motor" : "stop-motor"} />
             </Box>
             <Box>
               <Typography sx={{

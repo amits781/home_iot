@@ -4,6 +4,53 @@
     animation-iteration-count: infinite;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    .start-motor {
+        animation: App-logo-spin infinite 10s linear;
+        box-shadow: 0px 0px 30px 5px #31f62e;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .stop-motor {
+        animation: breathe infinite 3s linear;
+        box-shadow: 0 0px 30px 10px #b81a3d;
+    }
+}
+
+@keyframes breathe {
+    0% {
+        box-shadow: 0 0px 30px 0px #b81a3d;
+    }
+
+    25% {
+        box-shadow: 0 0px 30px 5px #b81a3d;
+    }
+
+    50% {
+        box-shadow: 0 0px 30px 10px #b81a3d;
+    }
+
+    75% {
+        box-shadow: 0 0px 30px 5px #b81a3d;
+    }
+
+    100% {
+        box-shadow: 0 0px 30px 0px #b81a3d;
+    }
+
+}
+
+@keyframes App-logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 @-moz-keyframes spin {
     from {
         -moz-transform: rotate(360deg);
@@ -34,15 +81,7 @@
     }
 }
 
-.button-mobile{
+.button-mobile {
     width: -webkit-fill-available;
     margin-bottom: 20px;
-}
-
-.glow-error{
-    box-shadow: 0 0px 10px 5px #b81a3d;
-}
-
-.glow-success{
-    box-shadow: 0 0px 10px 5px #31f62e;
 }
