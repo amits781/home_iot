@@ -193,7 +193,7 @@ export default function IotCard() {
             alignItems={{ xs: 'center' }}
           >
             <Box>
-              <CycloneOutlinedIcon sx={{ fontSize: '80px', borderRadius: '50px' }} className={(iotState.deviceStatus && (iotState.buttonOnCondition || iotState.buttonOnDisable)) ? "start-motor" : "stop-motor"} />
+              <CycloneOutlinedIcon sx={{ fontSize: '80px', borderRadius: '50px' }} className={ iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? "start-motor" : "stop-motor": ""} />
             </Box>
             <Box>
               <Typography sx={{
