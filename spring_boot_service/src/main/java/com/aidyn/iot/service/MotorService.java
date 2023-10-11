@@ -162,7 +162,15 @@ public class MotorService {
           // .equalsIgnoreCase("java.net.SocketTimeoutException")) {
           log.error("Error occured in scheduler get device status: {}", e.getMessage());
           log.info("classname: {}", e.getCause().getClass().getName());
+          log.info("Max retry reached : {]", retryCount);
           // }
+        }
+        log.info("Retry count : {]", retryCount);
+        try {
+          Thread.sleep(2000);
+        } catch (InterruptedException e1) {
+          log.info("Exception occured in thread sleep: {}", e1.getCause());
+          e1.printStackTrace();
         }
       } finally {
         semaphore.release(); // Release the permit
