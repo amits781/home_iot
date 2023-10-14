@@ -145,32 +145,34 @@ public class MotorService {
   public MotorStatus getDeviceStatus() {
     int retryCount = 0;
     int maxRetry = 2;
-    while (retryCount < maxRetry) {
+    while (retryCount <= maxRetry) {
       try {
         semaphore.acquire();
         String response = restTemplate.getForObject(
             MotorConstants.ARDUINO_HOST + "/" + MotorConstants.STATUS_API, String.class);
         MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
+        // log.info("Motor Status: {}", motorStatus);
         return motorStatus;
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         log.error("Thread interupted: {}", e.getCause().getMessage());
       } catch (Exception e) {
         retryCount++;
-        if (retryCount == maxRetry) {
+        if (retryCount >= maxRetry) {
           // if (!e.getCause().getClass().getName()
           // .equalsIgnoreCase("java.net.SocketTimeoutException")) {
           log.error("Error occured in scheduler get device status: {}", e.getMessage());
           log.info("classname: {}", e.getCause().getClass().getName());
-          log.info("Max retry reached : {]", retryCount);
+          log.info("Max retry reached : {}", retryCount);
           // }
-        }
-        log.info("Retry count : {]", retryCount);
-        try {
-          Thread.sleep(2000);
-        } catch (InterruptedException e1) {
-          log.info("Exception occured in thread sleep: {}", e1.getCause());
-          e1.printStackTrace();
+        } else {
+          log.info("Retry count : {}", retryCount);
+          try {
+            Thread.sleep(2000);
+          } catch (InterruptedException e1) {
+            log.info("Exception occured in thread sleep: {}", e1.getCause());
+            e1.printStackTrace();
+          }
         }
       } finally {
         semaphore.release(); // Release the permit
