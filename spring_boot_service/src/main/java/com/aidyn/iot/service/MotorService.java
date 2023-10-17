@@ -157,7 +157,6 @@ public class MotorService {
         Thread.currentThread().interrupt();
         log.error("Thread interupted: {}", e.getCause().getMessage());
       } catch (Exception e) {
-        retryCount++;
         if (retryCount >= maxRetry) {
           // if (!e.getCause().getClass().getName()
           // .equalsIgnoreCase("java.net.SocketTimeoutException")) {
@@ -166,9 +165,11 @@ public class MotorService {
           log.info("Max retry reached : {}", retryCount);
           // }
         } else {
-          log.info("Retry count : {}", retryCount);
           try {
+            log.info("Retry count : {}", retryCount);
+            log.info("Sleeping for 2 secs");
             Thread.sleep(2000);
+            log.info("Retrying after sleep");
           } catch (InterruptedException e1) {
             log.info("Exception occured in thread sleep: {}", e1.getCause());
             e1.printStackTrace();
@@ -176,6 +177,7 @@ public class MotorService {
         }
       } finally {
         semaphore.release(); // Release the permit
+        retryCount++;
       }
     }
     return MotorStatus.builder().status(2).build();
