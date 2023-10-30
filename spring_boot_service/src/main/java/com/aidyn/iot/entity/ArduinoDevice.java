@@ -36,6 +36,8 @@ public class ArduinoDevice {
 
   private String operatedBy;
 
+  private Integer strength;
+
   public enum DeviceStatus {
     ON("1"), OFF("0"), ERROR("2");
 

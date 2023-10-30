@@ -11,4 +11,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MotorStatus {
   Integer status;
+  Integer strength;
 }

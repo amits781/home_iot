@@ -9,10 +9,8 @@ import com.aidyn.iot.annotation.ScopeValidator;
 import com.aidyn.iot.service.MotorService;
 import com.aidyn.iot.utils.MotorConstants;
 import com.aidyn.iot.utils.ResponseHandler;
-import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@Slf4j
 @ScopeValidator(roles = "operate", organization = "org_2VCGpyCsoZFYn7ePa2FiNl0bAka")
 public class MainController {
 

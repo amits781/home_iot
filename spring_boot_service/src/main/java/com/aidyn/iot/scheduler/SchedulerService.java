@@ -56,8 +56,12 @@ public class SchedulerService {
         device.setDeviceStatus(currentStatus);
         device.setUpdatedOn(LocalDateTime.now());
         device.setOperatedBy("SYSTEM");
+        device.setStrength(motorStatus.getStrength());
         device = arduinoService.saveDevice(device);
         motorService.sendEmailToAllUser(device, deviceType);
+      } else {
+        device.setStrength(motorStatus.getStrength());
+        device = arduinoService.saveDevice(device);
       }
     } else {
       log.info("Scheduler Turned off.");

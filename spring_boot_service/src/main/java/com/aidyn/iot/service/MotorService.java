@@ -65,7 +65,8 @@ public class MotorService {
     log.info("Operation get status initiated for user {}.", currUser.getDisplayName());
     ArduinoDevice device = arduinoService.getDevice();
     Integer status = Integer.parseInt(device.getDeviceStatus().getValue());
-    MotorStatus motorStatus = MotorStatus.builder().status(status).build();
+    MotorStatus motorStatus =
+        MotorStatus.builder().status(status).strength(device.getStrength()).build();
     log.info("Operation get status response from db {}.", motorStatus);
     return motorStatus;
   }
