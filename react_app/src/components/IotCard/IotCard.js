@@ -8,6 +8,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import CycloneOutlinedIcon from '@mui/icons-material/CycloneOutlined';
 
+
 import { Stack } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { getHeadersFromToken, hostUrl } from '../Utils/Utils';
@@ -15,6 +16,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
 import IconButton from '@mui/material/IconButton';
 import { useAuth } from "@clerk/clerk-react";
+import WifiSignal from '../WifiSignal/WifiSignal';
 
 export default function IotCard() {
 
@@ -29,6 +31,7 @@ export default function IotCard() {
     buttonOffDisable: true,
     loadingDisplay: 'block',
     refreshButtonClass: '',
+    wifiStrength: 0,
   });
 
 
@@ -103,12 +106,11 @@ export default function IotCard() {
           return response.json();
         })
         .then((responseData) => {
-
           const responseMessageValue = responseData.payload;
           const responseOk = responseData.status === 200 ? true : false;
 
           if (!(responseMessageValue === "") && responseOk) {
-            const deviceStatusValue = responseData.payload.status === 2 ? false: true;
+            const deviceStatusValue = responseData.payload.status === 2 ? false : true;
             const buttonOffDisableValue = !deviceStatusValue;
             const buttonOnDisableValue = !deviceStatusValue;
             const motorStatusValue = responseData.payload.status === 1 ? true : false;
@@ -122,13 +124,14 @@ export default function IotCard() {
               buttonOnDisable: buttonOnDisableValue,
               buttonOffDisable: buttonOffDisableValue,
               loadingDisplay: 'hidden',
+              wifiStrength: (responseData.payload.strength + 1),
             });
 
           }
         })
         .catch((error) => {
           setIotState({
-            ...iotState, responseMessage: 'Server Error', loadingDisplay: 'hidden', buttonOnDisable: true,
+            ...iotState, responseMessage: 'Server Error', loadingDisplay: 'hidden', buttonOnDisable: true, wifiStrength: null,
             buttonOffDisable: true, deviceStatus: false
           });
           console.error('Error making GET request:', error);
@@ -173,19 +176,22 @@ export default function IotCard() {
         <Box sx={{ width: '100%', display: iotState.loadingDisplay }}>
           <LinearProgress color="inherit" />
         </Box>
-        <CardContent>
+        <CardContent sx={{ paddingTop: "0px" }}>
           <Stack
             direction={{ xs: 'row' }}
             alignItems={{ xs: 'center' }}
             justifyContent="space-between"
             spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
           >
+
+            <WifiSignal iconName={iotState.wifiStrength} />
             <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
               Device status: {iotState.deviceStatus ? 'On' : 'Device not Reachable'}
             </Typography>
             <IconButton aria-label="refresh" onClick={handleRefreshButtonClick} className={refreshButtonClass}>
               <CachedRoundedIcon />
             </IconButton>
+
           </Stack>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
@@ -193,7 +199,7 @@ export default function IotCard() {
             alignItems={{ xs: 'center' }}
           >
             <Box>
-              <CycloneOutlinedIcon sx={{ fontSize: '80px', borderRadius: '50px' }} className={ iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? "start-motor" : "stop-motor": ""} />
+              <CycloneOutlinedIcon sx={{ fontSize: '80px', borderRadius: '50px' }} className={iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? "start-motor" : "stop-motor" : ""} />
             </Box>
             <Box>
               <Typography sx={{
@@ -219,7 +225,7 @@ export default function IotCard() {
             </Box>
           </Stack>
         </CardContent>
-        <CardActions>
+        <CardActions sx={{ paddingBottom: "0px" }}>
           <Stack
             width={'100%'}
             justifyContent="space-around"
