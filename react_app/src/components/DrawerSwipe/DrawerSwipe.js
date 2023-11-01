@@ -5,13 +5,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 import List from '@mui/material/List';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import { IconButton, ListSubheader } from '@mui/material';
-import { Link } from 'react-router-dom';
+import MyMenuItem from '../MyMenuItem/MyMenuItem';
 
 export default function TemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -48,13 +45,8 @@ export default function TemporaryDrawer() {
       >
         <Divider />
         {[{ name: "Devices", icon: <DeveloperBoardIcon />, linkUrl: "/" }, { name: "Activity", icon: <QueryStatsIcon />, linkUrl: "/activity" }].map((item, index) => (
-          <ListItem key={item.name} disablePadding>
-            <ListItemButton component={Link} to={item.linkUrl}>
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.name} />
-            </ListItemButton>
+          <ListItem key={index} disablePadding>
+            <MyMenuItem item={item} />
           </ListItem>
         ))}
       </List>
