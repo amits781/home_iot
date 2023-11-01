@@ -72,28 +72,28 @@ function App() {
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
-          <ClerkProvider appearance={{
-            baseTheme: mode === 'dark' ? dark : null
-          }} publishableKey={clerkPubKey}
-            signInUrl='/'
-            signUpUrl='/'
-          >
-            <SignedIn>
-              <><ResponsiveAppBar colorMode={colorMode} theme={theme} />
-                <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/activity" element={<ActivityPage />} />
-                    <Route path="*" element={<ErrorPage />} />
-                  </Routes>
-                  
-                </BrowserRouter>
-              </>
-            </SignedIn>
-            <SignedOut>
-              <SignInSide theme={theme} />
-            </SignedOut>
-          </ClerkProvider>
+        <ClerkProvider appearance={{
+          baseTheme: mode === 'dark' ? dark : null
+        }} publishableKey={clerkPubKey}
+          signInUrl='/'
+          signUpUrl='/'
+        >
+          <SignedIn>
+            <>
+              <BrowserRouter>
+                <ResponsiveAppBar colorMode={colorMode} theme={theme} />
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/activity" element={<ActivityPage />} />
+                  <Route path="*" element={<ErrorPage />} />
+                </Routes>
+              </BrowserRouter>
+            </>
+          </SignedIn>
+          <SignedOut>
+            <SignInSide theme={theme} />
+          </SignedOut>
+        </ClerkProvider>
       </ThemeProvider>
     </ColorModeContext.Provider>
   );

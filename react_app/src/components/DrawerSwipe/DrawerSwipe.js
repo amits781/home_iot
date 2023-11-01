@@ -11,6 +11,7 @@ import ListItemText from '@mui/material/ListItemText';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import { IconButton, ListSubheader } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 export default function TemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -48,7 +49,7 @@ export default function TemporaryDrawer() {
         <Divider />
         {[{ name: "Devices", icon: <DeveloperBoardIcon />, linkUrl: "/" }, { name: "Activity", icon: <QueryStatsIcon />, linkUrl: "/activity" }].map((item, index) => (
           <ListItem key={item.name} disablePadding>
-            <ListItemButton component="a" href={item.linkUrl}>
+            <ListItemButton component={Link} to={item.linkUrl}>
               <ListItemIcon>
                 {item.icon}
               </ListItemIcon>
@@ -59,11 +60,11 @@ export default function TemporaryDrawer() {
       </List>
       <Divider />
       {/* <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
+        {['All mail'].map((text, index) => (
           <ListItem key={text} disablePadding>
-            <ListItemButton>
+            <ListItemButton component={Link} to={'/activity'}>
               <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                {index % 2 === 0 ? <DeveloperBoardIcon /> : <QueryStatsIcon />}
               </ListItemIcon>
               <ListItemText primary={text} />
             </ListItemButton>
