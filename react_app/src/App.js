@@ -86,6 +86,7 @@ function App() {
                     <Route path="/activity" element={<ActivityPage />} />
                     <Route path="*" element={<ErrorPage />} />
                   </Routes>
+                  
                 </BrowserRouter>
               </>
             </SignedIn>

@@ -9,12 +9,12 @@ import MenuIcon from '@mui/icons-material/Menu';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
-import HubTwoToneIcon from '@mui/icons-material/HubTwoTone';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import {
   UserButton,
 } from "@clerk/clerk-react";
+import TemporaryDrawer from '../DrawerSwipe/DrawerSwipe';
 
 const pages = [];
 const siteName = 'AIDYN';
@@ -25,7 +25,7 @@ function ResponsiveAppBar({ colorMode, theme }) {
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
-  
+
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);
   };
@@ -34,7 +34,8 @@ function ResponsiveAppBar({ colorMode, theme }) {
     <AppBar position="sticky">
       <Container maxWidth="false">
         <Toolbar disableGutters>
-          <HubTwoToneIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
+          <TemporaryDrawer />
+          {/* <HubTwoToneIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
           <Typography
             variant="h6"
             noWrap
@@ -53,7 +54,7 @@ function ResponsiveAppBar({ colorMode, theme }) {
             {siteName}
           </Typography>
 
-          <Box sx={{ flexGrow: 1, display: pages.size > 0 ?{ xs: 'flex', md: 'none' }: 'none'}}>
+          <Box sx={{ flexGrow: 1, display: pages.size > 0 ? { xs: 'flex', md: 'none' } : 'none' }}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -89,7 +90,7 @@ function ResponsiveAppBar({ colorMode, theme }) {
               ))}
             </Menu>
           </Box>
-          <HubTwoToneIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
+          {/* <HubTwoToneIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} /> */}
           <Typography
             variant="h5"
             noWrap
@@ -125,7 +126,7 @@ function ResponsiveAppBar({ colorMode, theme }) {
             </IconButton>
           </Box>
           <Box sx={{ flexGrow: 0 }}>
-              <UserButton />
+            <UserButton />
           </Box>
         </Toolbar>
       </Container>
