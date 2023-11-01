@@ -10,7 +10,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
-import { IconButton } from '@mui/material';
+import { IconButton, ListSubheader } from '@mui/material';
 
 export default function TemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -35,8 +35,18 @@ export default function TemporaryDrawer() {
       onClick={toggleDrawer(anchor, false)}
       onKeyDown={toggleDrawer(anchor, false)}
     >
-      <List>
-        {[{name: "Devices", icon: <DeveloperBoardIcon />, linkUrl: "/"}, {name: "Activity", icon: <QueryStatsIcon />, linkUrl: "/activity"}].map((item, index) => (
+      <List
+        sx={{ width: '100%', maxWidth: 360 }}
+        component="nav"
+        aria-labelledby="nested-list-subheader"
+        subheader={
+          <ListSubheader sx={{ backgroundColor: 'inherit' }} component="div" id="nested-list-subheader">
+            Menu
+          </ListSubheader>
+        }
+      >
+        <Divider />
+        {[{ name: "Devices", icon: <DeveloperBoardIcon />, linkUrl: "/" }, { name: "Activity", icon: <QueryStatsIcon />, linkUrl: "/activity" }].map((item, index) => (
           <ListItem key={item.name} disablePadding>
             <ListItemButton component="a" href={item.linkUrl}>
               <ListItemIcon>
