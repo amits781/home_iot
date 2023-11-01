@@ -37,7 +37,7 @@ function App() {
         palette: {
           mode,
           primary: {
-            main: '#bc6718',
+            main: '#e34040',
             contrastText: '#000',
           }
         },

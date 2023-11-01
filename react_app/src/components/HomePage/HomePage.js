@@ -47,7 +47,7 @@ export default function HomePage() {
   return (
     <Grid container component="main" sx={{
       height: "100vh",
-      backgroundImage: `url(${"/static/bgMountain.jpg"})`,
+      backgroundImage: `url(${"/static/rose_bg.jpeg"})`,
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
