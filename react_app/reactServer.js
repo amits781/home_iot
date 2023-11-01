@@ -25,6 +25,7 @@ try {
   logger.error('Error deleting New Relic agent log files:', err);
 }
 
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -55,17 +56,23 @@ function disableCaching(req, res, next) {
 // Use the disableCaching middleware for all routes
 app.use(disableCaching);
 
-// Serve the static build directory
-app.use(serveStatic('build'));
+app.use(express.static(path.join(__dirname, 'build')));
+
+
 
 // Health endpoint
 app.get('/iot-actuator/health', (req, res) => {
   // You can add more complex health checks here if needed
   const healthStatus = {
     status: 'UP',
-    version: '1.0.0',
+    version: '1.1.0',
   };
   res.json(healthStatus);
+});
+
+// Handle all other routes and redirect to your React app
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 // Start the server
