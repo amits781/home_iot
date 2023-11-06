@@ -1,5 +1,5 @@
 {
-  "short_name": "Aidyn App",
+  "short_name": "Aidyn Automation",
   "name": "Aidyn Automation App",
   "icons": [
     { "src": "/favicon.ico", "type": "image/x-icon", "sizes": "16x16 32x32" },
@@ -11,5 +11,20 @@
   "start_url": ".",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#92BAF9",
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "type": "image/png",
+      "sizes": "540x865",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot2.png",
+      "type": "image/jpg",
+      "sizes": "720x338",
+      "form_factor": "wide"
+    }
+  ],
+  "orientation" : "portrait"
 }
