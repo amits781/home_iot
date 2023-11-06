@@ -39,6 +39,7 @@ function App() {
           primary: {
             main: '#e34040',
             contrastText: '#000',
+            mainTransparent: '#e34040b3',
           }
         },
       }),

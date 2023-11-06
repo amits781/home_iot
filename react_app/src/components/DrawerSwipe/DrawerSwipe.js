@@ -1,4 +1,5 @@
 import * as React from 'react';
+import './DrawerSwipe.css';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -9,6 +10,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import { IconButton, ListSubheader } from '@mui/material';
 import MyMenuItem from '../MyMenuItem/MyMenuItem';
+import { useTheme } from '@mui/material/styles';
 
 export default function TemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -17,6 +19,8 @@ export default function TemporaryDrawer() {
     bottom: false,
     right: false,
   });
+
+  const theme = useTheme();
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -28,7 +32,7 @@ export default function TemporaryDrawer() {
 
   const list = (anchor) => (
     <Box
-      sx={{ width: anchor === 'top' || anchor === 'bottom' ? 'auto' : 250 }}
+            sx={{ width: anchor === 'top' || anchor === 'bottom' ? 'auto' : 250 }}
       role="presentation"
       onClick={toggleDrawer(anchor, false)}
       onKeyDown={toggleDrawer(anchor, false)}
@@ -82,6 +86,8 @@ export default function TemporaryDrawer() {
             anchor={anchor}
             open={state[anchor]}
             onClose={toggleDrawer(anchor, false)}
+            sx={{ backdropFilter: 'blur(5px) !important' }}
+            className={theme.palette.mode === 'dark' ? 'darkPaper' : 'lightPaper'}
           >
             {list(anchor)}
           </Drawer>

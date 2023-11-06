@@ -17,7 +17,7 @@ function MyMenuItem({ item }) {
     <ListItemButton
       component={NavLink}
       to={item.linkUrl}
-      sx={{ backgroundColor: isActive? isDarkTheme? 'black' : theme.palette.primary.main: '' }}
+      sx={{ backgroundColor: isActive? isDarkTheme? '#0000009c' : theme.palette.primary.mainTransparent: '' }}
     >
       <ListItemIcon>
         {item.icon}
