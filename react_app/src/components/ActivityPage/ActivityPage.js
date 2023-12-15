@@ -10,17 +10,22 @@ import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 import StickyHeadTable from '../StickyHeadTable/StickyHeadTable';
 import AnimatedNumbersCustom from '../AnimatedNumbers/AnimatedNumbers';
+import Grid from '@mui/material/Unstable_Grid2';
 
 import { useState, useEffect } from 'react';
 import { getHeadersFromToken, hostUrl } from '../Utils/Utils';
 import { useAuth } from "@clerk/clerk-react";
+import { useNavigate } from 'react-router-dom';
 
 const ActivityPage = () => {
 
   const { getToken } = useAuth();
+  const navigate = useNavigate();
   const [activityState, setActivityState] = useState({
     data: [],
   });
+
+  const [loading, setLoading] = useState(true);
 
   // eslint-disable-next-line
   const Item = styled(Paper)(({ theme }) => ({
@@ -53,6 +58,30 @@ const ActivityPage = () => {
   };
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await getToken();
+        const url = hostUrl + '/checkAuth';
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: getHeadersFromToken(token),
+        });
+
+        if (response.status === 200) {
+          setLoading(false);
+        } else {
+          const responseData = await response.json();
+          console.log("Check Auth Fail: " + responseData.payload);
+          navigate('/error?cause=user_unauthorized');
+        }
+      } catch (error) {
+        console.log("Check Auth Fail: " + error.message);
+        navigate('/error?cause=unexpected_error');
+      }
+    };
+
+    fetchData();
+
     const url = hostUrl + '/activities';
     getToken().then(token => {
       fetch(url, {
@@ -76,7 +105,7 @@ const ActivityPage = () => {
           console.error('Error making GET request:', error);
         });
     });
-  }, [activityState, getToken]);
+  }, [activityState, getToken, navigate]);
 
   return (
     <React.Fragment>
@@ -91,29 +120,34 @@ const ActivityPage = () => {
 
       }}>
         <Box sx={{
-          height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
-          backdropFilter: "blur(10px) !important", paddingTop: '20px'
+          height: '100vh', flexGrow: 1, background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
+          backdropFilter: "blur(10px) !important", paddingTop: '20px', overflow: 'auto'
         }} >
-
-          <Stack spacing={{ xs: 1, sm: 2 }}>
-            <Card sx={{ minWidth: 275, maxWidth: 200 }}>
-              <CardContent>
-                <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                  Total consumption
-                </Typography>
-                <Typography variant="h3">
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                  >
-                    <span>&#8377;</span>
-                    <AnimatedNumbersCustom num={((activityState.sumOfDurations / 3600) * 6)} />
-                  </Stack>
-                </Typography>
-              </CardContent>
-            </Card>
-            <StickyHeadTable activityState={activityState} />
-          </Stack>
+          <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ margin: '0 20px' }}>
+            <Grid xs={12} display="flex" justifyContent="right" alignItems="right">
+              <Card sx={{ minWidth: { sm: 275, xs: '100%' }, overflow: 'auto', textAlign: { xs: 'center', sm: 'left' } }}>
+                <CardContent>
+                  <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                    Total consumption
+                  </Typography>
+                  <Typography variant="h3">
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      justifyContent={{ xs: 'center', sm: 'left' }}
+                      alignItems={{ xs: 'center', sm: 'left' }}
+                    >
+                      <span>&#8377;</span>
+                      <AnimatedNumbersCustom num={((activityState.sumOfDurations / 3600) * 6)} />
+                    </Stack>
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid xs={12} >
+              <StickyHeadTable activityState={activityState} />
+            </Grid>
+          </Grid>
         </Box>
       </Container>
     </React.Fragment>
