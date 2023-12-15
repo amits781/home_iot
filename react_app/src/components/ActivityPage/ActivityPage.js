@@ -11,11 +11,13 @@ import { styled } from '@mui/material/styles';
 import StickyHeadTable from '../StickyHeadTable/StickyHeadTable';
 import AnimatedNumbersCustom from '../AnimatedNumbers/AnimatedNumbers';
 import Grid from '@mui/material/Unstable_Grid2';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useState, useEffect } from 'react';
-import { getHeadersFromToken, hostUrl } from '../Utils/Utils';
+import { getHeadersFromToken, hostUrl, navbarHeight } from '../Utils/Utils';
 import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
+import dayjs from 'dayjs';
 
 const ActivityPage = () => {
 
@@ -111,26 +113,70 @@ const ActivityPage = () => {
     <React.Fragment>
       <CssBaseline />
       <Container maxWidth="false" sx={{
-        height: "100vh",
+        margin: 0,
         backgroundImage: `url(${"/static/rose_bg.jpeg"})`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         padding: '0px !important',
-
+        overflow: 'auto',
+        minHeight: `calc(100vh - ${navbarHeight}px)`,
+        display: 'flex',
+        flexDirection: 'column',
       }}>
         <Box sx={{
-          height: '100vh', flexGrow: 1, background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
+          flexGrow: 1, background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
           backdropFilter: "blur(10px) !important", paddingTop: '20px', overflow: 'auto'
         }} >
           <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ margin: '0 20px' }}>
-            <Grid xs={12} display="flex" justifyContent="right" alignItems="right">
-              <Card sx={{ minWidth: { sm: 275, xs: '100%' }, overflow: 'auto', textAlign: { xs: 'center', sm: 'left' } }}>
+            <Grid xs={6} md={8} display="flex" justifyContent="left" alignItems="left">
+              <Card sx={{
+                minWidth: { sm: 275, xs: '100%' },
+                overflow: 'auto',
+                textAlign: { xs: 'center', sm: 'left' },
+                background: (t) =>
+                  t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
+                boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
+              }}>
+                <CardContent>
+                  <Typography sx={{ fontSize: 14, marginBottom: 2 }} color="text.secondary" gutterBottom>
+                    Filter Data
+                  </Typography>
+                  <DatePicker
+                    sx={{ margin: 1 }}
+                    label="From"
+                    defaultValue={dayjs()}
+                    views={['year', 'month', 'day']}
+                    slotProps={{
+                      textField: { size: 'small' }
+                    }} />
+                  <DatePicker
+                    sx={{ margin: 1 }}
+                    label="To"
+                    disableFuture={true}
+                    views={['year', 'month', 'day']}
+                    slotProps={{
+                      textField: { size: 'small' }
+                    }} />
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid xs={6} md={4} display="flex" justifyContent="right" alignItems="right">
+              <Card sx={{
+                minWidth: { sm: 275, xs: '100%' },
+                overflow: 'auto',
+                textAlign: { xs: 'left' },
+                display: 'flex',
+                alignItems: 'center',
+                background: (t) =>
+                  t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
+                boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
+              }}>
                 <CardContent>
                   <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
                     Total consumption
                   </Typography>
-                  <Typography variant="h3">
+                  <Typography variant='body'  sx={{ fontSize:{ xs: '2rem', sm: '4rem' } }}>
                     <Stack
                       direction="row"
                       spacing={1}

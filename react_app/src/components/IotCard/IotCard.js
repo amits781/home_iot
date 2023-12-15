@@ -170,8 +170,9 @@ export default function IotCard() {
   return (
     <>
       <Card raised={true} sx={{
-        minWidth: 275, background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)', boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)':'',
-        // backdropFilter: "blur(10px) !important",
+        width: { xs: 275, md: 350 }, background: (t) =>
+          t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
+        boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
       }}>
         <Box sx={{ width: '100%', display: iotState.loadingDisplay }}>
           <LinearProgress color="inherit" />

@@ -5,8 +5,8 @@ import { CssBaseline, Grid } from '@mui/material';
 import IotCard from '../IotCard/IotCard';
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from 'react';
-import { getHeadersFromToken, hostUrl } from '../Utils/Utils';
-import { useNavigate } from 'react-router-dom'; 
+import { getHeadersFromToken, hostUrl, navbarHeight } from '../Utils/Utils';
+import { useNavigate } from 'react-router-dom';
 import CardSkeleton from '../UtilComponent/CardSkeleton';
 
 
@@ -46,7 +46,9 @@ export default function HomePage() {
 
   return (
     <Grid container component="main" sx={{
-      height: "100vh",
+      minHeight: `calc(100vh - ${navbarHeight}px)`,
+      display: 'flex',
+      flexDirection: 'column',
       backgroundImage: `url(${"/static/rose_bg.jpeg"})`,
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
@@ -56,24 +58,25 @@ export default function HomePage() {
       <Box
         sx={{
           width: "100%",
-          height: "fill-content",
           background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
           backdropFilter: "blur(10px) !important",
           padding: "60px 20px 0px 20px",
-          display: 'flex',
-          flexDirection: 'column',
+          flexGrow: 1,
           alignItems: 'center',
+          overflow: 'auto'
         }}
       >
-        
+
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
+          justifyContent={'center'}
+          alignItems={'center'}
         >
           {
-            loading? <CardSkeleton /> : <IotCard />
+            loading ? <CardSkeleton /> : <IotCard />
           }
-          
+
         </Stack>
       </Box>
     </Grid>

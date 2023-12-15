@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js';
 
 
 export const hostUrl = config.apiHostUrl;
-
+export const navbarHeight = 64;
 
 
 

@@ -13,6 +13,8 @@ import {
   SignedOut,
 } from "@clerk/clerk-react";
 import { dark } from '@clerk/themes';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
@@ -71,32 +73,34 @@ function App() {
 
 
   return (
-    <ColorModeContext.Provider value={colorMode}>
-      <ThemeProvider theme={theme}>
-        <ClerkProvider appearance={{
-          baseTheme: mode === 'dark' ? dark : null
-        }} publishableKey={clerkPubKey}
-          signInUrl='/'
-          signUpUrl='/'
-        >
-          <SignedIn>
-            <>
-              <BrowserRouter>
-                <ResponsiveAppBar colorMode={colorMode} theme={theme} />
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/activity" element={<ActivityPage />} />
-                  <Route path="*" element={<ErrorPage />} />
-                </Routes>
-              </BrowserRouter>
-            </>
-          </SignedIn>
-          <SignedOut>
-            <SignInSide theme={theme} />
-          </SignedOut>
-        </ClerkProvider>
-      </ThemeProvider>
-    </ColorModeContext.Provider>
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <ColorModeContext.Provider value={colorMode}>
+        <ThemeProvider theme={theme}>
+          <ClerkProvider appearance={{
+            baseTheme: mode === 'dark' ? dark : null
+          }} publishableKey={clerkPubKey}
+            signInUrl='/'
+            signUpUrl='/'
+          >
+            <SignedIn>
+              <>
+                <BrowserRouter>
+                  <ResponsiveAppBar colorMode={colorMode} theme={theme} />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/activity" element={<ActivityPage />} />
+                    <Route path="*" element={<ErrorPage />} />
+                  </Routes>
+                </BrowserRouter>
+              </>
+            </SignedIn>
+            <SignedOut>
+              <SignInSide theme={theme} />
+            </SignedOut>
+          </ClerkProvider>
+        </ThemeProvider>
+      </ColorModeContext.Provider>
+    </LocalizationProvider>
   );
 }
 
