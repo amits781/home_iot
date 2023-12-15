@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -39,4 +40,7 @@ public class Utils {
     return date.format(formatter);
   }
 
+  public static long getDurationInSeconds(LocalDateTime start, LocalDateTime end) {
+    return ChronoUnit.SECONDS.between(start, end);
+  }
 }

@@ -9,7 +9,7 @@ public class BuildVersionInfoContributor implements InfoContributor {
 
   @Override
   public void contribute(Info.Builder builder) {
-    String buildVersion = "1.1.0";
+    String buildVersion = "1.2.0";
     builder.withDetail("buildVersion", buildVersion);
     builder.withDetail("contact", "amits781@gmail.com");
   }

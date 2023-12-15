@@ -38,4 +38,9 @@ public class MainController {
   public ResponseEntity<Object> getMotorStatus() {
     return ResponseHandler.generateResponse(HttpStatus.OK, service.getMotorStatus());
   }
+
+  @GetMapping("/activities")
+  public ResponseEntity<Object> getAllDeviceActivities() {
+    return ResponseHandler.generateResponse(HttpStatus.OK, service.getAllDeviceActivities());
+  }
 }

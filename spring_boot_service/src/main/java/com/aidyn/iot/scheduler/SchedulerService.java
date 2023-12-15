@@ -55,7 +55,7 @@ public class SchedulerService {
         String deviceType = getDeviceTypeString(currentStatus, device);
         device.setDeviceStatus(currentStatus);
         device.setUpdatedOn(LocalDateTime.now());
-        device.setOperatedBy("SYSTEM");
+        device.setOperatedBy(MotorConstants.OPERATER_TYPE_SYSTEM);
         device.setStrength(motorStatus.getStrength());
         device = arduinoService.saveDevice(device);
         motorService.sendEmailToAllUser(device, deviceType);

@@ -10,5 +10,6 @@ public class MotorConstants {
   public final static String EMAIL_SUBJECT = "Home IOT status update";
   public final static String DEVICE_TYPE_MOTOR = "Motor";
   public final static String DEVICE_TYPE_POWER = "Power";
+  public final static String OPERATER_TYPE_SYSTEM = "SYSTEM";
 
 }

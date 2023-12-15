@@ -2,6 +2,8 @@ package com.aidyn.iot.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import javax.mail.MessagingException;
@@ -9,10 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import com.aidyn.iot.dao.DeviceActivityDao;
 import com.aidyn.iot.dao.UserDao;
 import com.aidyn.iot.dto.MotorStatus;
 import com.aidyn.iot.entity.ArduinoDevice;
 import com.aidyn.iot.entity.ArduinoDevice.DeviceStatus;
+import com.aidyn.iot.entity.DeviceActivity;
 import com.aidyn.iot.entity.User;
 import com.aidyn.iot.exception.HomeIotException;
 import com.aidyn.iot.utils.MotorConstants;
@@ -40,6 +44,9 @@ public class MotorService {
 
   @Autowired
   UserDao userDao;
+
+  @Autowired
+  DeviceActivityDao deviceActivityDao;
 
   public MotorStatus operateMotor(String operation) {
     User currUser = Utils.getCurrentUser();
@@ -72,6 +79,7 @@ public class MotorService {
   }
 
   public void sendEmailToAllUser(ArduinoDevice device, String targetDevice) {
+    createActivity(device);
     List<User> users = userDao.getAllUser();
     String deviceStatusString = getDeviceStatusString(device, targetDevice);
     deviceStatusString = deviceStatusString.toLowerCase();
@@ -90,6 +98,7 @@ public class MotorService {
 
   public CompletableFuture<Void> sendEmailToAllUserAsync(ArduinoDevice device,
       String targetDevice) {
+    createActivity(device);
     List<User> users = userDao.getAllUser();
     String deviceStatusString = getDeviceStatusString(device, targetDevice);
     deviceStatusString = deviceStatusString.toLowerCase();
@@ -115,6 +124,35 @@ public class MotorService {
     }
 
     return allEmailsSent;
+  }
+
+  private void createActivity(ArduinoDevice device) {
+    DeviceActivity deviceActivity = DeviceActivity.builder().build();
+    if (Objects.equals(device.getDeviceStatus(), ArduinoDevice.DeviceStatus.ON)) {
+      deviceActivity.setStartByOperator(device.getOperatedBy());
+      deviceActivity.setStartTime(device.getUpdatedOn());
+    } else if (Objects.equals(device.getDeviceStatus(), ArduinoDevice.DeviceStatus.OFF)
+        || Objects.equals(device.getDeviceStatus(), ArduinoDevice.DeviceStatus.ERROR)) {
+      Optional<DeviceActivity> optionalActivity = deviceActivityDao.getMostRecentDeviceActivity();
+      if (optionalActivity.isPresent()) {
+        deviceActivity = optionalActivity.get();
+        deviceActivity.setEndByOperator(device.getOperatedBy());
+        deviceActivity.setEndTime(device.getUpdatedOn());
+        deviceActivity.setDuration(
+            Utils.getDurationInSeconds(deviceActivity.getStartTime(), device.getUpdatedOn()));
+      } else {
+        if (Objects.equals(device.getOperatedBy(), MotorConstants.OPERATER_TYPE_SYSTEM)) {
+          return;
+        }
+        deviceActivity.setStartByOperator(device.getOperatedBy());
+        deviceActivity.setStartTime(device.getUpdatedOn());
+        deviceActivity.setEndByOperator(device.getOperatedBy());
+        deviceActivity.setEndTime(device.getUpdatedOn());
+        deviceActivity
+            .setDuration(Utils.getDurationInSeconds(device.getUpdatedOn(), device.getUpdatedOn()));
+      }
+    }
+    deviceActivityDao.saveDeviceActivity(deviceActivity);
   }
 
   private String getDeviceStatusString(ArduinoDevice device, String targetDevice) {
@@ -182,5 +220,9 @@ public class MotorService {
       }
     }
     return MotorStatus.builder().status(2).build();
+  }
+
+  public List<DeviceActivity> getAllDeviceActivities() {
+    return deviceActivityDao.getAllActivity();
   }
 }
