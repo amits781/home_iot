@@ -11,8 +11,7 @@ import TableRow from '@mui/material/TableRow';
 
 
 const formatDate = (value) => {
-  const dateObject = new Date(value);
-
+  const dateObject = value === null?  null : new Date(value);
   const options = {
     year: 'numeric',
     month: 'long',
@@ -21,13 +20,12 @@ const formatDate = (value) => {
     minute: 'numeric',
     second: 'numeric',
   };
-
-  return dateObject.toLocaleString('en-US', options);
+  return dateObject === null? "---" : dateObject.toLocaleString('en-US', options);
 };
 
 const columns = [
-  { id: 'startByOperator', label: 'Started By', minWidth: 170 },
-  { id: 'endByOperator', label: 'Ended By', minWidth: 170 },
+  { id: 'startByOperator', label: 'Started By', minWidth: 170, format: (value) => value? value:"---", },
+  { id: 'endByOperator', label: 'Ended By', minWidth: 170, format: (value) => value? value:"---", },
   { id: 'startTime', label: 'Start\u00a0Time', minWidth: 100, format: (value) => formatDate(value), },
   { id: 'endTime', label: 'End\u00a0Time', minWidth: 100, format: (value) => formatDate(value), },
   {
@@ -35,7 +33,7 @@ const columns = [
     label: 'Duration\u00a0(sec)',
     minWidth: 170,
     align: 'right',
-    format: (value) => value.toLocaleString('en-US'),
+    format: (value) => value? value.toLocaleString('en-US'):"---",
   },
 ];
 
@@ -83,7 +81,7 @@ export default function StickyHeadTable({ activityState }) {
                       const value = row[column.id];
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format /*&& typeof value === 'number' */
+                          {column.format 
                             ? column.format(value)
                             : value}
                         </TableCell>
