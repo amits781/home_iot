@@ -11,5 +11,5 @@ public interface DeviceActivityRepository extends JpaRepository<DeviceActivity, 
 
   Optional<DeviceActivity> findTopByEndTimeIsNullOrderByStartTimeDesc();
 
-  List<DeviceActivity> findAllOrderByStartTimeDesc();
+  List<DeviceActivity> findAllByOrderByStartTimeDesc();
 }

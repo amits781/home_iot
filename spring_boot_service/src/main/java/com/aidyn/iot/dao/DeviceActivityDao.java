@@ -23,6 +23,6 @@ public class DeviceActivityDao {
   }
 
   public List<DeviceActivity> getAllActivity() {
-    return repository.findAllOrderByStartTimeDesc();
+    return repository.findAllByOrderByStartTimeDesc();
   }
 }
