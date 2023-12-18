@@ -14,7 +14,7 @@ import {
 } from "@clerk/clerk-react";
 import { dark } from '@clerk/themes';
 import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
@@ -73,7 +73,7 @@ function App() {
 
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+    <LocalizationProvider dateAdapter={AdapterMoment}>
       <ColorModeContext.Provider value={colorMode}>
         <ThemeProvider theme={theme}>
           <ClerkProvider appearance={{

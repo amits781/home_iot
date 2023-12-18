@@ -17,7 +17,8 @@ import { useState, useEffect } from 'react';
 import { getHeadersFromToken, hostUrl, navbarHeight } from '../Utils/Utils';
 import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
+import DataSkeleton from '../UtilComponent/DataSkeleton';
+import moment from 'moment';
 
 const ActivityPage = () => {
 
@@ -25,7 +26,12 @@ const ActivityPage = () => {
   const navigate = useNavigate();
   const [activityState, setActivityState] = useState({
     data: [],
+    filteredData: [],
   });
+
+  const [minDate, setMinDate] = React.useState(moment());
+  const [selectedFromDate, setSelectedFromDate] = React.useState(moment());
+  const [selectedToDate, setSelectedToDate] = React.useState(moment());
 
   const [loading, setLoading] = useState(true);
 
@@ -59,8 +65,13 @@ const ActivityPage = () => {
     return true;
   };
 
+  const handleDateChange = (date, setFunction) => {
+    setFunction(date);
+  };
+
+  // First useEffect for authentication check
   useEffect(() => {
-    const fetchData = async () => {
+    const checkAuth = async () => {
       try {
         const token = await getToken();
         const url = hostUrl + '/checkAuth';
@@ -70,7 +81,7 @@ const ActivityPage = () => {
         });
 
         if (response.status === 200) {
-          setLoading(false);
+          // setLoading(false);
         } else {
           const responseData = await response.json();
           console.log("Check Auth Fail: " + responseData.payload);
@@ -82,32 +93,140 @@ const ActivityPage = () => {
       }
     };
 
-    fetchData();
+    checkAuth();
+  }, [getToken, navigate]);
 
-    const url = hostUrl + '/activities';
-    getToken().then(token => {
-      fetch(url, {
-        method: 'GET',
-        headers: getHeadersFromToken(token),
-      })
-        .then((response) => {
-          return response.json();
-        })
-        .then((responseData) => {
-          if (responseData.status === 200) {
-            const activityData = responseData.payload;
-            const isEqual = arraysEqual(activityState.data, activityData);
-            if (!isEqual) {
-              const sumOfDurations = activityData.reduce((acc, entry) => acc + entry.duration, 0);
-              setActivityState({ ...activityState, data: activityData, sumOfDurations: sumOfDurations });
-            }
-          }
-        })
-        .catch((error) => {
-          console.error('Error making GET request:', error);
+  // Second useEffect for fetching activity data
+  useEffect(() => {
+    const fetchData = async () => {
+      const url = hostUrl + '/activities';
+      try {
+        const token = await getToken();
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: getHeadersFromToken(token),
         });
+
+        if (response.status === 200) {
+          const responseData = await response.json();
+          const activityData = responseData.payload;
+
+          const isEqual = arraysEqual(activityState.data, activityData);
+
+          if (!isEqual) {
+            const dates = activityData.map((item) => moment(item.startTime));
+            const smallestDate = moment.min(dates);
+            const sumOfDurations = activityData.reduce((acc, entry) => acc + entry.duration, 0);
+            setMinDate(smallestDate);
+            setSelectedFromDate(smallestDate);
+
+            setActivityState((prevActivityState) => {
+              return {
+                ...prevActivityState,
+                data: activityData,
+                filteredData: activityData,
+                filteredSumOfDurations: sumOfDurations,
+              }
+            });
+            setLoading(false);
+          }
+        }
+      } catch (error) {
+        console.error('Error making GET request:', error);
+      }
+    };
+
+    fetchData();
+  }, [activityState.data, getToken]);
+
+  //3rd useEffect to handle date change
+  useEffect(() => {
+    // Callback function to execute after state is updated
+    const filteredData = activityState.data.filter((item) => {
+      const startTime = moment(item.startTime);
+      const endTime = moment(item.endTime);
+
+      return (startTime.isSameOrAfter(selectedFromDate, 'day') && endTime.isSameOrBefore(selectedToDate, 'day')) || (item.endTime===null);
     });
-  }, [activityState, getToken, navigate]);
+    const sumOfDurations = filteredData.reduce((acc, entry) => acc + entry.duration, 0);
+    setActivityState((prevActivityState) => {
+      return {
+        ...prevActivityState,
+        filteredData: filteredData, 
+        filteredSumOfDurations: sumOfDurations
+      }
+    });
+  }, [selectedFromDate, selectedToDate, activityState.data]);
+
+  function ActivityPageSummary() {
+    return (<React.Fragment>
+      <Grid xs={6} md={8} display="flex" justifyContent="left" alignItems="left">
+        <Card sx={{
+          minWidth: { sm: 275, xs: '100%' },
+          overflow: 'auto',
+          textAlign: { xs: 'center', sm: 'left' },
+          background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
+          boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
+        }}>
+          <CardContent>
+            <Typography sx={{ fontSize: 14, marginBottom: 2 }} color="text.secondary" gutterBottom>
+              Filter Data
+            </Typography>
+            <DatePicker
+              sx={{ margin: 1 }}
+              label="From"
+              disableFuture={true}
+              minDate={minDate}
+              defaultValue={selectedFromDate}
+              views={['year', 'month', 'day']}
+              onChange={(date) => handleDateChange(date, setSelectedFromDate)}
+              slotProps={{
+                textField: { size: 'small' }
+              }} />
+            <DatePicker
+              sx={{ margin: 1 }}
+              label="To"
+              disableFuture={true}
+              minDate={selectedFromDate}
+              defaultValue={selectedToDate}
+              onChange={(date) => handleDateChange(date, setSelectedToDate)}
+              views={['year', 'month', 'day']}
+              slotProps={{
+                textField: { size: 'small' }
+              }} />
+          </CardContent>
+        </Card>
+      </Grid>
+      <Grid xs={6} md={4} display="flex" justifyContent="right" alignItems="right">
+        <Card sx={{
+          minWidth: { sm: 275, xs: '100%' },
+          overflow: 'auto',
+          textAlign: { xs: 'left' },
+          display: 'flex',
+          alignItems: 'center',
+          background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
+          boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
+        }}>
+          <CardContent>
+            <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+              Total consumption
+            </Typography>
+            <Typography variant='body' sx={{ fontSize: { xs: '2rem', sm: '4rem' } }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                justifyContent={{ xs: 'center', sm: 'left' }}
+                alignItems={{ xs: 'center', sm: 'left' }}
+              >
+                <span>&#8377;</span>
+                <AnimatedNumbersCustom num={((activityState.filteredSumOfDurations / 3600) * 6)} />
+              </Stack>
+            </Typography>
+          </CardContent>
+        </Card>
+      </Grid>
+    </React.Fragment>);
+  }
 
   return (
     <React.Fragment>
@@ -127,77 +246,23 @@ const ActivityPage = () => {
         <Box sx={{
           flexGrow: 1, background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
           backdropFilter: "blur(10px) !important", paddingTop: '20px', overflow: 'auto'
-        }} >
+        }}>
           <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ margin: '0 20px' }}>
-            <Grid xs={6} md={8} display="flex" justifyContent="left" alignItems="left">
-              <Card sx={{
-                minWidth: { sm: 275, xs: '100%' },
-                overflow: 'auto',
-                textAlign: { xs: 'center', sm: 'left' },
-                background: (t) =>
-                  t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-                boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
-              }}>
-                <CardContent>
-                  <Typography sx={{ fontSize: 14, marginBottom: 2 }} color="text.secondary" gutterBottom>
-                    Filter Data
-                  </Typography>
-                  <DatePicker
-                    sx={{ margin: 1 }}
-                    label="From"
-                    defaultValue={dayjs()}
-                    views={['year', 'month', 'day']}
-                    slotProps={{
-                      textField: { size: 'small' }
-                    }} />
-                  <DatePicker
-                    sx={{ margin: 1 }}
-                    label="To"
-                    disableFuture={true}
-                    views={['year', 'month', 'day']}
-                    slotProps={{
-                      textField: { size: 'small' }
-                    }} />
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid xs={6} md={4} display="flex" justifyContent="right" alignItems="right">
-              <Card sx={{
-                minWidth: { sm: 275, xs: '100%' },
-                overflow: 'auto',
-                textAlign: { xs: 'left' },
-                display: 'flex',
-                alignItems: 'center',
-                background: (t) =>
-                  t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-                boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
-              }}>
-                <CardContent>
-                  <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                    Total consumption
-                  </Typography>
-                  <Typography variant='body'  sx={{ fontSize:{ xs: '2rem', sm: '4rem' } }}>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      justifyContent={{ xs: 'center', sm: 'left' }}
-                      alignItems={{ xs: 'center', sm: 'left' }}
-                    >
-                      <span>&#8377;</span>
-                      <AnimatedNumbersCustom num={((activityState.sumOfDurations / 3600) * 6)} />
-                    </Stack>
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid xs={12} >
-              <StickyHeadTable activityState={activityState} />
+            {
+              loading ? <React.Fragment /> : <ActivityPageSummary />
+            }
+            <Grid xs={12}>
+              {
+                loading ? <DataSkeleton /> : <StickyHeadTable activityState={activityState} />
+              }
             </Grid>
           </Grid>
         </Box>
       </Container>
     </React.Fragment>
   )
+
+
 }
 
 export default ActivityPage
