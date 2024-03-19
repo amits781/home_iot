@@ -10,6 +10,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -31,14 +32,19 @@ def operate_motor(operation):
         response = requests.post(URL, headers=headers, data=json.dumps(data))
         if response.status_code == 200:
             logger.info(f"Motor Operation {operation} successful!")
+            return operation
         else:
             logger.error(f"Error in request: {response.status_code} - {response.text}")
+            operation = "On" if operation == "Off" else "Off"
+            return operation
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
+        operation = "On" if operation == "Off" else "Off"
+        return operation
 
 def power_state(device_id, state):
     print('device_id: {} state: {}'.format(device_id, state))
-    operate_motor(state)
+    state = operate_motor(state)
     return True, state
 
 
