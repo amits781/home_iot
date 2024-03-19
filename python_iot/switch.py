@@ -30,7 +30,7 @@ def operate_motor(operation):
     try:
         response = requests.post(URL, headers=headers, data=json.dumps(data))
         if response.status_code == 200:
-            logger.info("Operation successful!")
+            logger.info(f"Motor Operation {operation} successful!")
         else:
             logger.error(f"Error in request: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
