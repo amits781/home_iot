@@ -4,6 +4,11 @@ from sinric import SinricPro, SinricProConstants
 import asyncio
 import requests
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -25,11 +30,11 @@ def operate_motor(operation):
     try:
         response = requests.post(URL, headers=headers, data=json.dumps(data))
         if response.status_code == 200:
-            print("Operation successful!")
+            logger.info("Operation successful!")
         else:
-            print(f"Error: {response.status_code} - {response.text}")
+            logger.error(f"Error: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
-        print(f"Request error: {e}")
+        logger.error(f"Request error: {e}")
 
 def power_state(device_id, state):
     print('device_id: {} state: {}'.format(device_id, state))
