@@ -43,7 +43,7 @@ def operate_motor(operation):
         return operation
 
 def power_state(device_id, state):
-    print('device_id: {} state: {}'.format(device_id, state))
+    logger.info('device_id: {} state: {}'.format(device_id, state))
     state = operate_motor(state)
     return True, state
 
