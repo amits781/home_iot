@@ -32,7 +32,7 @@ def operate_motor(operation):
         if response.status_code == 200:
             logger.info("Operation successful!")
         else:
-            logger.error(f"Error: {response.status_code} - {response.text}")
+            logger.error(f"Error in request: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error: {e}")
 
