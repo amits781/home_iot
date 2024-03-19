@@ -11,5 +11,6 @@ public class MotorConstants {
   public final static String DEVICE_TYPE_MOTOR = "Motor";
   public final static String DEVICE_TYPE_POWER = "Power";
   public final static String OPERATER_TYPE_SYSTEM = "SYSTEM";
+  public final static String ASSISTANT_EMAIL = "automation@aidyn.com";
 
 }

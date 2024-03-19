@@ -10,7 +10,6 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import com.aidyn.iot.entity.User;
 
 public class Utils {
 
@@ -18,11 +17,18 @@ public class Utils {
   private Utils() {}
 
 
-  public static User getCurrentUser() {
+  public static Object getCurrentUser() {
 
     HttpServletRequest httpServletRequest =
         ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-    return (User) httpServletRequest.getAttribute("USER");
+    return httpServletRequest.getAttribute("USER");
+  }
+
+  public static void setAssistantUser() {
+
+    HttpServletRequest httpServletRequest =
+        ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+    httpServletRequest.setAttribute("USER", "assistant");
   }
 
   public static String getFormatedDate(LocalDateTime date) {

@@ -8,11 +8,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import javax.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import com.aidyn.iot.dao.DeviceActivityDao;
 import com.aidyn.iot.dao.UserDao;
+import com.aidyn.iot.dto.AssistantRequestBody;
 import com.aidyn.iot.dto.MotorStatus;
 import com.aidyn.iot.entity.ArduinoDevice;
 import com.aidyn.iot.entity.ArduinoDevice.DeviceStatus;
@@ -48,8 +50,18 @@ public class MotorService {
   @Autowired
   DeviceActivityDao deviceActivityDao;
 
+  @Value("${SECRET_KEY}")
+  private String assistantSecret;
+
   public MotorStatus operateMotor(String operation) {
-    User currUser = Utils.getCurrentUser();
+    Object httpAttribute = Utils.getCurrentUser();
+    User currUser = null;
+    if (httpAttribute instanceof User) {
+      currUser = (User) httpAttribute;
+    } else {
+      currUser = userDao.getUserByEmail(MotorConstants.ASSISTANT_EMAIL).orElseThrow(
+          () -> new HomeIotException("Assistant User not found", HttpStatus.EXPECTATION_FAILED));
+    }
     log.info("Operation {} initiated for user {}.", operation, currUser.getDisplayName());
     List<String> operationToEmail = List.of("H", "L");
     MotorStatus status = makeArduinoCall(operation);
@@ -67,8 +79,27 @@ public class MotorService {
     return status;
   }
 
+  public MotorStatus operateMotorByAssistant(AssistantRequestBody motorRequest) {
+    log.info("Request received for assistant user: {}", motorRequest.getOperation());
+    if (!assistantSecret.equals(motorRequest.getSecret())) {
+      throw new HomeIotException("Assistant User not authorised", HttpStatus.UNAUTHORIZED);
+    }
+    Utils.setAssistantUser();
+    String operation =
+        motorRequest.getOperation().equalsIgnoreCase("On") ? MotorConstants.TURN_ON_API
+            : MotorConstants.TURN_OFF_API;
+    return operateMotor(operation);
+  }
+
   public MotorStatus getMotorStatus() {
-    User currUser = Utils.getCurrentUser();
+    Object httpAttribute = Utils.getCurrentUser();
+    User currUser = null;
+    if (httpAttribute instanceof User) {
+      currUser = (User) httpAttribute;
+    } else {
+      currUser = userDao.getUserByEmail(MotorConstants.ASSISTANT_EMAIL).orElseThrow(
+          () -> new HomeIotException("Assistant User not found", HttpStatus.EXPECTATION_FAILED));
+    }
     log.info("Operation get status initiated for user {}.", currUser.getDisplayName());
     ArduinoDevice device = arduinoService.getDevice();
     Integer status = Integer.parseInt(device.getDeviceStatus().getValue());

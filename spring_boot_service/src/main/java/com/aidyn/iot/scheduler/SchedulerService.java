@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import com.aidyn.iot.dao.UserDao;
 import com.aidyn.iot.dto.MotorStatus;
 import com.aidyn.iot.entity.ArduinoDevice;
 import com.aidyn.iot.entity.ArduinoDevice.DeviceStatus;
+import com.aidyn.iot.entity.User;
 import com.aidyn.iot.exception.NotFoundException;
 import com.aidyn.iot.service.ArduinoDeviceService;
 import com.aidyn.iot.service.MotorService;
@@ -25,21 +27,41 @@ public class SchedulerService {
   @Autowired
   MotorService motorService;
 
+  @Autowired
+  UserDao userDao;
+
   @Value("${SCHEDULER_ENABLED:true}")
   private Boolean isSchedulerEnabled;
 
   @PostConstruct
   public void initArduinoDevice() {
+    // check default device
     log.info("Initial Device check");
     try {
       arduinoService.getDevice();
       log.info("Initial Device Found.");
     } catch (NotFoundException e) {
-      log.info("Initial Device Not Found.");
+      log.info("Initial Device Not Found. Creating now");
       ArduinoDevice device = ArduinoDevice.builder().deviceStatus(DeviceStatus.OFF).build();
       arduinoService.saveDevice(device);
     } catch (Exception e) {
       log.error("Initial device check failed: {}", e.getMessage());
+    }
+
+    // check default/assistant user
+    log.info("Initial User check");
+    try {
+      Boolean userExists = userDao.checkIfEmailExists(MotorConstants.ASSISTANT_EMAIL);
+      if (userExists) {
+        log.info("Initial User Found.");
+      } else {
+        log.info("Initial User Not Found. Creating now");
+        User assistantUser = User.builder().displayName("Assistant")
+            .regEmail(MotorConstants.ASSISTANT_EMAIL).build();
+        userDao.saveUser(assistantUser);
+      }
+    } catch (Exception e) {
+      log.error("Initial User check failed: {}", e.getMessage());
     }
   }
 

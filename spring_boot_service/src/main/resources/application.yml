@@ -42,4 +42,5 @@ management:
       exposure:
         include: health, info         
   
-
+app:
+  secret-key: ${SECRET_KEY}
