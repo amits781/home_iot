@@ -68,12 +68,14 @@ public class SchedulerService {
   @Scheduled(fixedRate = 10000) // Run every 10 seconds
   public void runScheduledTask() {
     if (isSchedulerEnabled) {
-      MotorStatus motorStatus = motorService.getDeviceStatus();
+      MotorStatus motorStatus = motorService.getDeviceStatus(); // Arduino Status
       ArduinoDevice.DeviceStatus currentStatus = getDeviceStatus(motorStatus);
-      ArduinoDevice device = arduinoService.getDevice();
+      ArduinoDevice device = arduinoService.getDevice(); // DB Device
       if (!device.getDeviceStatus().equals(currentStatus)) {
         log.info("Device status changed from {} to {}", device.getDeviceStatus().getValue(),
             currentStatus.getValue());
+        // either current status or prev status is error, then its the power change
+        // so device type is power
         String deviceType = getDeviceTypeString(currentStatus, device);
         device.setDeviceStatus(currentStatus);
         device.setUpdatedOn(LocalDateTime.now());

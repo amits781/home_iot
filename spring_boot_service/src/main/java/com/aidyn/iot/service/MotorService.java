@@ -53,6 +53,12 @@ public class MotorService {
   @Value("${SECRET_KEY}")
   private String assistantSecret;
 
+  /**
+   * Send the required operation to arduino device (H/L)
+   * 
+   * @param operation - Current requested operation
+   * @return status of motor along with it's wifi strength
+   */
   public MotorStatus operateMotor(String operation) {
     Object httpAttribute = Utils.getCurrentUser();
     User currUser = null;
@@ -63,27 +69,44 @@ public class MotorService {
           () -> new HomeIotException("Assistant User not found", HttpStatus.EXPECTATION_FAILED));
     }
     log.info("Operation {} initiated for user {}.", operation, currUser.getDisplayName());
+    ArduinoDevice dbDevice = arduinoService.getDevice();
+    DeviceStatus dbDeviceStatus = dbDevice.getDeviceStatus();
+    DeviceStatus newDeviceStatus =
+        operation.equalsIgnoreCase("H") ? DeviceStatus.ON : DeviceStatus.OFF;
+    MotorStatus status;
+    if (dbDeviceStatus.equals(newDeviceStatus)) {
+      status = MotorStatus.builder().status(dbDeviceStatus.getIntValue())
+          .strength(dbDevice.getStrength()).build();
+      return status;
+    }
     List<String> operationToEmail = List.of("H", "L");
-    MotorStatus status = makeArduinoCall(operation);
+    status = makeArduinoCall(operation);
     log.info("Operation {} response from arduino {}.", operation, status);
     if (operationToEmail.contains(operation)) {
-      DeviceStatus deviceStatus =
-          operation.equalsIgnoreCase("H") ? DeviceStatus.ON : DeviceStatus.OFF;
-      ArduinoDevice device = arduinoService.getDevice();
-      device.setDeviceStatus(deviceStatus);
-      device.setOperatedBy(currUser.getDisplayName());
-      device.setUpdatedOn(LocalDateTime.now());
-      arduinoService.saveDevice(device);
-      sendEmailToAllUserAsync(device, MotorConstants.DEVICE_TYPE_MOTOR);
+
+      dbDevice.setDeviceStatus(newDeviceStatus);
+      dbDevice.setOperatedBy(currUser.getDisplayName());
+      dbDevice.setUpdatedOn(LocalDateTime.now());
+      arduinoService.saveDevice(dbDevice);
+      sendEmailToAllUserAsync(dbDevice, MotorConstants.DEVICE_TYPE_MOTOR);
     }
     return status;
   }
 
+  /**
+   * New method to support calls from Smart assistant device.
+   * 
+   * @param motorRequest - Current requested operation
+   * @return status of motor along with it's wifi strength
+   */
   public MotorStatus operateMotorByAssistant(AssistantRequestBody motorRequest) {
     log.info("Request received for assistant user: {}", motorRequest.getOperation());
     if (!assistantSecret.equals(motorRequest.getSecret())) {
+      // Only when secret matches, the operation is allowed
       throw new HomeIotException("Assistant User not authorised", HttpStatus.UNAUTHORIZED);
     }
+    // To make it compatible with "operateMotor" method
+    // Not much of logic here
     Utils.setAssistantUser();
     String operation =
         motorRequest.getOperation().equalsIgnoreCase("On") ? MotorConstants.TURN_ON_API
@@ -91,6 +114,11 @@ public class MotorService {
     return operateMotor(operation);
   }
 
+  /**
+   * Gives the status of the DB device entry. This is to fulfill request from UI for status query
+   * 
+   * @return Motor status
+   */
   public MotorStatus getMotorStatus() {
     Object httpAttribute = Utils.getCurrentUser();
     User currUser = null;
@@ -102,13 +130,32 @@ public class MotorService {
     }
     log.info("Operation get status initiated for user {}.", currUser.getDisplayName());
     ArduinoDevice device = arduinoService.getDevice();
-    Integer status = Integer.parseInt(device.getDeviceStatus().getValue());
+    Integer status = device.getDeviceStatus().getIntValue();
     MotorStatus motorStatus =
         MotorStatus.builder().status(status).strength(device.getStrength()).build();
     log.info("Operation get status response from db {}.", motorStatus);
     return motorStatus;
   }
 
+  public MotorStatus getMotorStatusByAssistant(AssistantRequestBody motorRequest) {
+    log.info("Operation get status initiated for assistant");
+    if (!assistantSecret.equals(motorRequest.getSecret())) {
+      // Only when secret matches, the operation is allowed
+      throw new HomeIotException("Assistant User not authorised", HttpStatus.UNAUTHORIZED);
+    }
+    // To make it compatible with "operateMotor" method
+    // Not much of logic here
+    Utils.setAssistantUser();
+    return getMotorStatus();
+  }
+
+  /**
+   * Only used by scheduler service. Sends email whenever power goes off or comes back. Since it
+   * works inside the server, we don't really care about response time/ gateway time out
+   * 
+   * @param device
+   * @param targetDevice
+   */
   public void sendEmailToAllUser(ArduinoDevice device, String targetDevice) {
     createActivity(device);
     List<User> users = userDao.getAllUser();
@@ -124,9 +171,15 @@ public class MotorService {
         log.error("Email to {} send failed: {}", user.getDisplayName(), e.getMessage());
       }
     });
-
   }
 
+  /**
+   * To send email notifications to users in house Also creates the device activity history
+   * 
+   * @param device - DB device object
+   * @param targetDevice - Maybe either Motor/Power depending on operation
+   * @return never mind
+   */
   public CompletableFuture<Void> sendEmailToAllUserAsync(ArduinoDevice device,
       String targetDevice) {
     createActivity(device);
@@ -136,7 +189,6 @@ public class MotorService {
     String emailMessage = String.format(MotorConstants.EMAIL_MESSAGE, targetDevice,
         deviceStatusString, Utils.getFormatedDate(device.getUpdatedOn()), device.getOperatedBy());
 
-    // Create a CompletableFuture that is initially completed
     CompletableFuture<Void> allEmailsSent = CompletableFuture.completedFuture(null);
 
     for (User user : users) {
@@ -157,6 +209,13 @@ public class MotorService {
     return allEmailsSent;
   }
 
+
+  /**
+   * To log every activity done by user in activity page. Specifying the start time , end time,
+   * start by, end by operations
+   * 
+   * @param device - The device on which operation was performed
+   */
   private void createActivity(ArduinoDevice device) {
     DeviceActivity deviceActivity = DeviceActivity.builder().build();
     if (Objects.equals(device.getDeviceStatus(), ArduinoDevice.DeviceStatus.ON)) {
@@ -164,8 +223,10 @@ public class MotorService {
       deviceActivity.setStartTime(device.getUpdatedOn());
     } else if (Objects.equals(device.getDeviceStatus(), ArduinoDevice.DeviceStatus.OFF)
         || Objects.equals(device.getDeviceStatus(), ArduinoDevice.DeviceStatus.ERROR)) {
+      // Case where device was turned off or power went off
       Optional<DeviceActivity> optionalActivity = deviceActivityDao.getMostRecentDeviceActivity();
       if (optionalActivity.isPresent()) {
+        // Only make and entry if motor on entry was found
         deviceActivity = optionalActivity.get();
         deviceActivity.setEndByOperator(device.getOperatedBy());
         deviceActivity.setEndTime(device.getUpdatedOn());
@@ -173,8 +234,14 @@ public class MotorService {
             Utils.getDurationInSeconds(deviceActivity.getStartTime(), device.getUpdatedOn()));
       } else {
         if (Objects.equals(device.getOperatedBy(), MotorConstants.OPERATER_TYPE_SYSTEM)) {
+          // we don't want to log system generated events like power on or off
           return;
         }
+        /*
+         * Corner case where we get motor off request without any prior motor on events Here it
+         * handles them by creating start time and end time same As well as start by and ended by is
+         * same
+         */
         deviceActivity.setStartByOperator(device.getOperatedBy());
         deviceActivity.setStartTime(device.getUpdatedOn());
         deviceActivity.setEndByOperator(device.getOperatedBy());
@@ -192,6 +259,14 @@ public class MotorService {
             : DeviceStatus.ON.name();
   }
 
+  /**
+   * Function to make calls to arduino device. It limits single call to device with semaphore
+   * variables. So at any point of time only a single call to device will be made, reducing socket
+   * exception
+   * 
+   * @param operation
+   * @return Motor status
+   */
   public MotorStatus makeArduinoCall(String operation) {
 
     try {
@@ -212,6 +287,15 @@ public class MotorService {
     throw new HomeIotException("Device Unreachable", HttpStatus.EXPECTATION_FAILED);
   }
 
+  /**
+   * Used by scheduler service to get updated device status everytime. Function to make calls to
+   * arduino device. It limits single call to device with semaphore variables. So at any point of
+   * time only a single call to device will be made, reducing socket exception
+   * 
+   * This function also makes max of 3 tries if failures happens at an interval of 2sec.
+   * 
+   * @return Motor status
+   */
   public MotorStatus getDeviceStatus() {
     int retryCount = 0;
     int maxRetry = 2;

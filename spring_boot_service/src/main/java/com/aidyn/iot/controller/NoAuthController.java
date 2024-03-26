@@ -27,4 +27,10 @@ public class NoAuthController {
     return ResponseHandler.generateResponse(HttpStatus.OK,
         service.operateMotorByAssistant(motorRequest));
   }
+
+  @GetMapping("/motor-status")
+  public ResponseEntity<Object> getMotorStatus(@RequestBody AssistantRequestBody motorRequest) {
+    return ResponseHandler.generateResponse(HttpStatus.OK,
+        service.getMotorStatusByAssistant(motorRequest));
+  }
 }

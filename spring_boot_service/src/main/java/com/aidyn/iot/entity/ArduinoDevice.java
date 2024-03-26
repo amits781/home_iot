@@ -51,6 +51,10 @@ public class ArduinoDevice {
       return value;
     }
 
+    public Integer getIntValue() {
+      return Integer.parseInt(value);
+    }
+
     public static DeviceStatus findByValue(String value) {
       for (DeviceStatus deviceStatus : DeviceStatus.values()) {
         if (deviceStatus.getValue().equals(value)) {
