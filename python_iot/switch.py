@@ -29,7 +29,7 @@ def operate_motor(operation):
         'operation': operation
     }
     try:
-        response = requests.post(URL, headers=headers, data=json.dumps(data))
+        response = requests.post(f"{URL}/operate-motor", headers=headers, data=json.dumps(data))
         if response.status_code == 200:
             logger.info(f"Motor Operation {operation} successful!")
             return operation
@@ -47,6 +47,38 @@ def power_state(device_id, state):
     state = operate_motor(state)
     return True, state
 
+async def check_device_status_periodically(interval=30):
+    """
+    Periodically checks the device status by making an API call and updates it accordingly.
+    """
+    while True:
+        logger.info("Checking device status...")
+        try:
+            # The API request to check device status.
+            headers = {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+            }
+            data = {
+                'secret': APP_KEY
+            }
+            response = requests.post(f"{URL}/motor-status", headers=headers, data=json.dumps(data))
+            if response.status_code == 200:
+                # The response contains a JSON with {"status": 1} or {"status": 0}
+                status_data = response.json()
+                status = status_data.get('status', 0)  # Default to '0' if status is not present.
+                logger.info(f"Current device status: {status}")
+                # Update the SinricPro about the current status.
+                iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if status == 0 else SinricProConstants.POWER_STATE_ON
+                client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
+            else:
+                logger.error(f"Failed to check device status. HTTP Error: {response.status_code}")
+                client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
+
+        except Exception as e:
+            logger.error(f"An error occurred while checking device status: {e}")
+            client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
+        await asyncio.sleep(interval)  # Wait for the specified interval before the next check.
 
 callbacks = {
     SinricProConstants.SET_POWER_STATE: power_state
@@ -56,6 +88,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     client = SinricPro(APP_KEY, [SWITCH_ID], callbacks,
                        enable_log=False, restore_states=False, secret_key=APP_SECRET)
+    asyncio.ensure_future(check_device_status_periodically())
     loop.run_until_complete(client.connect())
 
 # To update the power state on server.
