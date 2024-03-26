@@ -66,17 +66,18 @@ async def check_device_status_periodically(interval=30):
             if response.status_code == 200:
                 # The response contains a JSON with {"status": 1} or {"status": 0}
                 status_data = response.json()
-                status = status_data.get('status', 0)  # Default to '0' if status is not present.
-                logger.info(f"Current device status: {status}")
+                payload = status_data.get('payload', {})
+                motorStatus = payload.get('status', 0)  # Default to '0' if status is not present.
+                logger.info(f"Current motor status: {motorStatus}")
                 # Update the SinricPro about the current status.
-                iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if status == 0 else SinricProConstants.POWER_STATE_ON
+                iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if motorStatus == 0 else SinricProConstants.POWER_STATE_ON
                 client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
             else:
-                logger.error(f"Failed to check device status. HTTP Error: {response.status_code}")
+                logger.error(f"Failed to check motor status. HTTP Error: {response.status_code}")
                 client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
 
         except Exception as e:
-            logger.error(f"An error occurred while checking device status: {e}")
+            logger.error(f"An error occurred while checking motor status: {e}")
             client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
         await asyncio.sleep(interval)  # Wait for the specified interval before the next check.
 
