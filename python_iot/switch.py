@@ -1,3 +1,5 @@
+import newrelic.agent
+newrelic.agent.initialize('newrelic.ini') #This is required!
 import os
 from dotenv import load_dotenv
 from sinric import SinricPro, SinricProConstants
@@ -21,7 +23,11 @@ URL = os.environ.get('URL')
 
 motorStateLocal = 0 # Global reference to motor status
 
+@newrelic.agent.background_task(name='motor-operate', group='Task')
 def operate_motor(operation):
+    """
+    Make an API call to SpringBoot with desired operation.
+    """
     headers = {
         'Accept': '*/*',
         'Content-Type': 'application/json',
@@ -36,22 +42,24 @@ def operate_motor(operation):
             logger.info(f"Motor Operation {operation} successful!")
             return operation
         else:
-            logger.error(f"Error in request: {response.status_code} - {response.text}")
+            logger.error(f"Error in performing motor operation: HTTP Error: {response.status_code} - {response.text}")
             operation = "On" if operation == "Off" else "Off"
             return operation
     except requests.exceptions.RequestException as e:
-        logger.error(f"Request error: {e}")
+        logger.error(f"Exception in performing motor operation: {e}")
         operation = "On" if operation == "Off" else "Off"
         return operation
 
+@newrelic.agent.background_task(name='motor-power-state-update', group='Task')
 def power_state(device_id, state):
     global motorStateLocal
-    logger.info('device_id: {} state: {}'.format(device_id, state))
+    logger.info('Updating | device_id: {} state: {}'.format(device_id, state))
     state = operate_motor(state)
     motorStateLocal = 0 if state == "Off" else 1
     return True, state
 
-async def check_device_status_periodically(interval=30):
+@newrelic.agent.background_task(name='motor-status-check', group='Task')
+async def check_device_status_periodically(interval=10):
     """
     Periodically checks the device status by making an API call and updates it accordingly.
     """
@@ -64,7 +72,6 @@ async def check_device_status_periodically(interval=30):
         'secret': APP_KEY
     }
     while True:
-        logger.info("Checking device status...")
         try:
             # The API request to check device status.
             response = requests.post(f"{URL}/motor-status", headers=headers, data=json.dumps(data))
@@ -81,11 +88,13 @@ async def check_device_status_periodically(interval=30):
                     client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
                     motorStateLocal = motorStatus
             else:
-                logger.error(f"Failed to check motor status. HTTP Error: {response.status_code}")
+                logger.error(f"Error in checking motor status. HTTP Error: {response.status_code} - {response.text}")
+                logger.warn(f"Setting motor power state to Off")
                 client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
 
         except Exception as e:
-            logger.error(f"An error occurred while checking motor status: {e}")
+            logger.error(f"Exception occurred while checking motor status: {e}")
+            logger.warn(f"Setting motor power state to Off")
             client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
         await asyncio.sleep(interval)  # Wait for the specified interval before the next check.
 
