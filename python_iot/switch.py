@@ -58,7 +58,10 @@ def power_state(device_id, state):
     motorStateLocal = 0 if state == "Off" else 1
     return True, state
 
-@newrelic.agent.background_task(name='motor-status-check', group='ScheduleTask')
+@newrelic.agent.background_task(name='motor-power-state-update', group='Task')
+def test_logging(message):
+    logger.info(f"test log {message}")
+
 async def check_device_status_periodically(interval=10):
     """
     Periodically checks the device status by making an API call and updates it accordingly.
@@ -82,6 +85,7 @@ async def check_device_status_periodically(interval=10):
                 motorStatus = payload.get('status', 0)  # Default to '0' if status is not present.
                 # logger.info(f"Current motor status: {motorStatus}")
                 newrelic.agent.record_log_event(message=f"NR Current motor status: {motorStatus}", level=logging.INFO)
+                test_logging(f"NRT Current motor status: {motorStatus}")
                 # logger.info(f"Last motor status: {motorStateLocal}")
                 newrelic.agent.record_log_event(message=f"NR Last motor status: {motorStateLocal}", level=logging.INFO)
                 if motorStateLocal != motorStatus:
