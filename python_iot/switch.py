@@ -58,10 +58,6 @@ def power_state(device_id, state):
     motorStateLocal = 0 if state == "Off" else 1
     return True, state
 
-@newrelic.agent.background_task(name='motor-power-state-update', group='Task')
-def test_logging(message):
-    logger.info(f"test log {message}")
-
 async def check_device_status_periodically(interval=10):
     """
     Periodically checks the device status by making an API call and updates it accordingly.
@@ -84,24 +80,27 @@ async def check_device_status_periodically(interval=10):
                 payload = status_data.get('payload', {})
                 motorStatus = payload.get('status', 0)  # Default to '0' if status is not present.
                 # logger.info(f"Current motor status: {motorStatus}")
-                newrelic.agent.record_log_event(message=f"NR Current motor status: {motorStatus}", level=logging.INFO)
-                test_logging(f"NRT Current motor status: {motorStatus}")
                 # logger.info(f"Last motor status: {motorStateLocal}")
-                newrelic.agent.record_log_event(message=f"NR Last motor status: {motorStateLocal}", level=logging.INFO)
+                newrelic.agent.record_log_event(message=f"Current motor status: {motorStatus}", level=logging.INFO)
+                newrelic.agent.record_log_event(message=f"Last motor status: {motorStateLocal}", level=logging.INFO)
                 if motorStateLocal != motorStatus:
                     # Update the SinricPro about the current status.
                     iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if motorStatus == 0 else SinricProConstants.POWER_STATE_ON
                     client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
-                    logger.info(f"Updating motor status to: {motorStatus}")
+                    newrelic.agent.record_log_event(message=f"Updating motor status to: {motorStatus}", level=logging.INFO)
                     motorStateLocal = motorStatus
             else:
-                logger.error(f"Error in checking motor status. HTTP Error: {response.status_code} - {response.text}")
-                logger.warn(f"Setting motor power state to Off")
+                # logger.error(f"Error in checking motor status. HTTP Error: {response.status_code} - {response.text}")
+                # logger.warn(f"Setting motor power state to Off")
+                newrelic.agent.record_log_event(message=f"Error in checking motor status. HTTP Error: {response.status_code} - {response.text}", level=logging.ERROR)
+                newrelic.agent.record_log_event(message=f"Setting motor power state to Off", level=logging.WARN)
                 client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
 
         except Exception as e:
-            logger.error(f"Exception occurred while checking motor status: {e}")
-            logger.warn(f"Setting motor power state to Off")
+            # logger.error(f"Exception occurred while checking motor status: {e}")
+            # logger.warn(f"Setting motor power state to Off")
+            newrelic.agent.record_log_event(message=f"Exception occurred while checking motor status: {e}", level=logging.ERROR)
+            newrelic.agent.record_log_event(message=f"Setting motor power state to Off", level=logging.WARN)
             client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
         await asyncio.sleep(interval)  # Wait for the specified interval before the next check.
 
