@@ -58,7 +58,7 @@ def power_state(device_id, state):
     motorStateLocal = 0 if state == "Off" else 1
     return True, state
 
-@newrelic.agent.background_task(name='motor-status-check', group='Task')
+@newrelic.agent.background_task(name='motor-status-check', group='ScheduleTask')
 async def check_device_status_periodically(interval=10):
     """
     Periodically checks the device status by making an API call and updates it accordingly.
