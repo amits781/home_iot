@@ -80,8 +80,10 @@ async def check_device_status_periodically(interval=10):
                 status_data = response.json()
                 payload = status_data.get('payload', {})
                 motorStatus = payload.get('status', 0)  # Default to '0' if status is not present.
-                logger.info(f"Current motor status: {motorStatus}")
-                logger.info(f"Last motor status: {motorStateLocal}")
+                # logger.info(f"Current motor status: {motorStatus}")
+                newrelic.agent.record_log_event(message=f"NR Current motor status: {motorStatus}", level=logging.INFO)
+                # logger.info(f"Last motor status: {motorStateLocal}")
+                newrelic.agent.record_log_event(message=f"NR Last motor status: {motorStateLocal}", level=logging.INFO)
                 if motorStateLocal != motorStatus:
                     # Update the SinricPro about the current status.
                     iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if motorStatus == 0 else SinricProConstants.POWER_STATE_ON
