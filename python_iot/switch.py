@@ -107,8 +107,8 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     client = SinricPro(APP_KEY, [SWITCH_ID], callbacks,
                        enable_log=False, restore_states=False, secret_key=APP_SECRET)
-    asyncio.ensure_future(check_device_status_periodically())
-    loop.run_until_complete(client.connect())
+    coroutines = asyncio.gather(check_device_status_periodically(), client.connect())
+    loop.run_until_complete(coroutines)
 
 # To update the power state on server.
 # client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_ON })
