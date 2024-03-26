@@ -19,6 +19,8 @@ APP_SECRET = os.environ.get('APP_SECRET')
 SWITCH_ID = os.environ.get('SWITCH_ID')
 URL = os.environ.get('URL')
 
+motorStateLocal = 0 # Global reference to motor status
+
 def operate_motor(operation):
     headers = {
         'Accept': '*/*',
@@ -43,25 +45,28 @@ def operate_motor(operation):
         return operation
 
 def power_state(device_id, state):
+    global motorStateLocal
     logger.info('device_id: {} state: {}'.format(device_id, state))
     state = operate_motor(state)
+    motorStateLocal = 0 if state == "Off" else 1
     return True, state
 
 async def check_device_status_periodically(interval=30):
     """
     Periodically checks the device status by making an API call and updates it accordingly.
     """
+    global motorStateLocal
+    headers = {
+                'Accept': '*/*',
+                'Content-Type': 'application/json',
+            }
+    data = {
+        'secret': APP_KEY
+    }
     while True:
         logger.info("Checking device status...")
         try:
             # The API request to check device status.
-            headers = {
-                'Accept': '*/*',
-                'Content-Type': 'application/json',
-            }
-            data = {
-                'secret': APP_KEY
-            }
             response = requests.post(f"{URL}/motor-status", headers=headers, data=json.dumps(data))
             if response.status_code == 200:
                 # The response contains a JSON with {"status": 1} or {"status": 0}
@@ -69,9 +74,11 @@ async def check_device_status_periodically(interval=30):
                 payload = status_data.get('payload', {})
                 motorStatus = payload.get('status', 0)  # Default to '0' if status is not present.
                 logger.info(f"Current motor status: {motorStatus}")
-                # Update the SinricPro about the current status.
-                iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if motorStatus == 0 else SinricProConstants.POWER_STATE_ON
-                client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
+                logger.info(f"Last motor status: {motorStateLocal}")
+                if motorStateLocal != motorStatus:
+                    # Update the SinricPro about the current status.
+                    iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if motorStatus == 0 else SinricProConstants.POWER_STATE_ON
+                    client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
             else:
                 logger.error(f"Failed to check motor status. HTTP Error: {response.status_code}")
                 client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
