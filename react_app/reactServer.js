@@ -1,7 +1,7 @@
 const express = require('express');
-const serveStatic = require('serve-static');
 const winston = require('winston');
 const fs = require('fs');
+const cors = require('cors');
 
 // Create a Winston logger instance
 const logger = winston.createLogger({
@@ -29,7 +29,11 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-
+// Create a CORS configuration for the specific endpoint
+const corsOptions = {
+  origin: '*', // Allow all origins
+  // You can also use more specific options if needed
+};
 
 // Middleware to log requests using Winston
 app.use((req, res, next) => {
@@ -43,7 +47,7 @@ app.use((req, res, next) => {
     responseTime: `${res.responseTime} ms`
   };
 
-  logger.info("Request Log - IP: "+logData.ip+", URL: "+logData.url+", Status Code: "+logData.statusCode, logData);
+  logger.info("Request Log - IP: " + logData.ip + ", URL: " + logData.url + ", Status Code: " + logData.statusCode, logData);
   next();
 });
 
@@ -61,7 +65,7 @@ app.use(express.static(path.join(__dirname, 'build')));
 
 
 // Health endpoint
-app.get('/iot-actuator/health', (req, res) => {
+app.get('/iot-actuator/health', cors(corsOptions), (req, res) => {
   // You can add more complex health checks here if needed
   const healthStatus = {
     status: 'UP',
