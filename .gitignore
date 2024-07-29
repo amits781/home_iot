@@ -33,7 +33,7 @@ replay_pid*
 
 
 ### react ###
-index.html
+react_app/index.html
 .DS_*
 *.log
 logs

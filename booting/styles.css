@@ -1,0 +1,124 @@
+@import url(https://fonts.googleapis.com/css?family=Raleway:100);
+.cortana-loader {
+  position: relative;
+}
+.cortana-loader:before, .cortana-loader:after {
+  animation-duration: 850ms;
+  animation-iteration-count: infinite;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  left: 0;
+  position: absolute;
+  top: 0;
+  transform-style: preserve-3d;
+}
+.cortana-loader:before {
+  animation-name: outerFlip;
+  box-shadow: 0px 0px 5px 10px #59abe5;
+  height: 150px;
+  width: 150px;
+}
+.cortana-loader:after {
+  animation-name: innerFlip;
+  box-shadow: 0 0 0 7px #276490;
+  height: 136px;
+  left: 7px;
+  top: 7px;
+  width: 136px;
+}
+
+.demo {
+  height: 107px;
+  margin: 30vh auto 0;
+  width: 107px;
+}
+
+.loading-text {
+  font-size: 28px;
+  line-height: 32px;
+  margin: 80px auto 0;
+  text-align: center;
+  width: 320px;
+}
+
+.response {
+  font-size: 28px;
+  line-height: 32px;
+  margin-left: 20px;
+  text-align: left;
+  width: 320px;
+  position: absolute;
+  bottom: 0vh;
+}
+
+.glow-green{
+  text-shadow: 0 0 1px #5ae548,
+                0 0 20px green,
+                0 0 30px green,
+                0 0 40px green,
+                0 0 55px green,
+                0 0 70px green;
+}
+
+body {
+  background: #111;
+  color: #70acd9;
+  font-family: "Raleway", sans-serif;
+}
+
+@keyframes blink {
+  0% {
+      opacity: 1;
+  }
+  50% {
+      opacity: 0;
+  }
+  100% {
+      opacity: 1;
+  }
+}
+
+.blinking-text {
+  animation: blink 1s infinite; 
+}
+
+@keyframes outerFlip {
+  0% {
+    transform: rotateY(0deg);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  7% {
+    transform: rotateY(0deg);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  60% {
+    transform: rotateY(180deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: rotateY(180deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+}
+@keyframes innerFlip {
+  0% {
+    transform: rotateY(0deg);
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  40% {
+    transform: rotateY(180deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: rotateY(180deg);
+    opacity: 1;
+    animation-timing-function: ease-in-out;
+  }
+}
