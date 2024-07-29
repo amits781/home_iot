@@ -15,11 +15,16 @@
     <p class='loading-text'>
         Please wait while we set things up.
     </p>
-    <p class='response'>
-        Server: <span class="blinking-text" id="health-backend">Checking...</span></br>
-        WebPage: <span class="blinking-text" id="health-frontend">Checking...</span>
-    </p>
-    
+    <div class="center">
+        <div id="myBar" class="progress-6"></div>
+    </div>
+    <div class='response'>
+        <p class="box-status status-fail">Server: <span class="blinking-text" id="health-backend">Checking...</span>
+        </p>
+        <p class="box-status status-fail">WebPage: <span class="blinking-text" id="health-frontend">Checking...</span>
+        </p>
+    </div>
+
 
     <script src="script.js"></script>
 </body>
