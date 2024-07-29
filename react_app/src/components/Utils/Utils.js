@@ -3,6 +3,7 @@ import CryptoJS from 'crypto-js';
 
 
 export const hostUrl = config.apiHostUrl;
+export const pixbayKey = config.pixbayKey;
 export const navbarHeight = 64;
 
 

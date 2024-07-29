@@ -5,7 +5,8 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Available Scripts
 
 In the project directory, you can run:
-
+### `fnm env --use-on-cd | Out-String | Invoke-Expression`
+### `fnm use v20.16.0`
 ### `npm start`
 
 Runs the app in the development mode.\
