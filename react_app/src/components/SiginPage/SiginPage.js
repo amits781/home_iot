@@ -8,7 +8,6 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { SignIn } from "@clerk/clerk-react";
 import axios from 'axios';
-import { pixbayKey } from '../Utils/Utils';
 
 function Copyright(props) {
   return (
@@ -24,7 +23,8 @@ export default function SignInSide({ theme }) {
 
   const [videoSrc, setVideoSrc] = useState('');
   const [videoData, setVideoData] = useState([]);
-  console.log(process.env.PIXBAY_KEY);
+
+
   // Function to set a random videpixbayKeyo source from the fetched data
   const setRandomVideoSrc = (videos) => {
     if (videos.length > 0) {
@@ -39,7 +39,7 @@ export default function SignInSide({ theme }) {
       try {
         const response = await axios.get('https://pixabay.com/api/videos/', {
           params: {
-            key: pixbayKey,
+            key: process.env.REACT_APP_PIXBAY_KEY,
             q: 'aerial',
             orientation: 'horizontal',
             category: 'backgrounds',
