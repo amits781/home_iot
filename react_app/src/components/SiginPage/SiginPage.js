@@ -24,7 +24,7 @@ export default function SignInSide({ theme }) {
 
   const [videoSrc, setVideoSrc] = useState('');
   const [videoData, setVideoData] = useState([]);
-  
+  console.log(process.env.PIXBAY_KEY);
   // Function to set a random videpixbayKeyo source from the fetched data
   const setRandomVideoSrc = (videos) => {
     if (videos.length > 0) {
