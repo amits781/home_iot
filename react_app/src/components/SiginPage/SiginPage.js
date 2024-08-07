@@ -23,30 +23,39 @@ export default function SignInSide({ theme }) {
 
   const [videoSrc, setVideoSrc] = useState('');
   const [videoData, setVideoData] = useState([]);
+  const [searchHits, setSearchHits] = useState(0);
 
 
   // Function to set a random videpixbayKeyo source from the fetched data
   const setRandomVideoSrc = (videos) => {
     if (videos.length > 0) {
       const randomIndex = Math.floor(Math.random() * videos.length);
-      setVideoSrc(videos[randomIndex].videos.large.url);
+      const selectedVideo = videos[randomIndex];
+      setVideoSrc(selectedVideo.videos.large.url);
+      return selectedVideo.duration;
     }
+    return 600000; // Default interval time if no videos are available
   };
 
   useEffect(() => {
     // Function to fetch video data from Pixabay API
     const fetchVideoData = async () => {
+      var curr_page = searchHits === 0 ? 1 : Math.floor(Math.random() * searchHits) + 1;
       try {
         const response = await axios.get('https://pixabay.com/api/videos/', {
           params: {
             key: process.env.REACT_APP_PIXBAY_KEY,
-            q: 'aerial',
+            q: 'nature,sky',
             orientation: 'horizontal',
-            category: 'backgrounds',
+            category: 'travel',
             safesearch: 'true',
+            per_page: 20,
+            page: curr_page,
           },
         });
         const { hits } = response.data;
+        const total_page = Math.floor(response.data.totalHits/20);
+        setSearchHits(total_page);
         setVideoData(hits);
         // Set initial video source
         setRandomVideoSrc(hits);
@@ -56,15 +65,27 @@ export default function SignInSide({ theme }) {
     };
 
     // Fetch video data on component mount
+    
+
+    const intervalId = setInterval(() => {
+      fetchVideoData();
+    }, 600000); // 10 minutes in milliseconds
     fetchVideoData();
-  }, []);
+    // Cleanup the interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [searchHits]);
 
   useEffect(() => {
-    // Update video source every 10 minutes (600000 ms) using the existing JSON data
-    const intervalId = setInterval(() => {
-      setRandomVideoSrc(videoData);
-    }, 600000); // 10 minutes in milliseconds
-
+    let intervalId;
+  
+    const updateVideoSrc = () => {
+      const duration = setRandomVideoSrc(videoData);
+      clearInterval(intervalId);
+      intervalId = setInterval(updateVideoSrc, duration * 1000 * 5); // assuming duration is in seconds
+    };
+  
+    updateVideoSrc(); // Set initial video and interval
+  
     // Cleanup the interval on component unmount
     return () => clearInterval(intervalId);
   }, [videoData]);
