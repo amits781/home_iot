@@ -163,13 +163,15 @@ public class MotorService {
     deviceStatusString = deviceStatusString.toLowerCase();
     String emailMessage = String.format(MotorConstants.EMAIL_MESSAGE, targetDevice,
         deviceStatusString, Utils.getFormatedDate(device.getUpdatedOn()), device.getOperatedBy());
-    users.forEach(user -> {
-      try {
-        emailService.sendEmail(user.getRegEmail(), MotorConstants.EMAIL_SUBJECT, emailMessage);
-        log.info("email sent to : {}", user.getDisplayName());
-      } catch (MessagingException e) {
-        log.error("Email to {} send failed: {}", user.getDisplayName(), e.getMessage());
-      }
+    users.stream()
+            .filter(u -> !u.getRegEmail().equalsIgnoreCase(MotorConstants.ASSISTANT_EMAIL))
+            .forEach(user -> {
+              try {
+                emailService.sendEmail(user.getRegEmail(), MotorConstants.EMAIL_SUBJECT, emailMessage);
+                log.info("email sent to : {}", user.getDisplayName());
+              } catch (MessagingException e) {
+                log.error("Email to {} send failed: {}", user.getDisplayName(), e.getMessage());
+              }
     });
   }
 
@@ -194,7 +196,8 @@ public class MotorService {
     for (User user : users) {
       final String userEmail = user.getRegEmail();
       final String userName = user.getDisplayName();
-
+      if(userEmail.equals(MotorConstants.ASSISTANT_EMAIL))
+        continue;
       // For each user, chain the email sending task
       allEmailsSent = allEmailsSent.thenRunAsync(() -> {
         try {
