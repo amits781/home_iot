@@ -4,7 +4,7 @@
   }
 
 
-  .cl-card div:nth-child(4),
+  .cl-card div:nth-child(n+4),
   .cl-footer {
     display: none;
   }
