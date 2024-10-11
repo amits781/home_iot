@@ -46,6 +46,7 @@ build
 package-lock.json
 .env
 newrelic.js
+.idea
 
 *.sublime*
 
@@ -53,3 +54,5 @@ psd
 thumb
 sketch
 /python_iot/*.ini
+react_app/package-lock.json
+scripts/
