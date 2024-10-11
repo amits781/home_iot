@@ -2,6 +2,9 @@
 ## Overview
 This IoT project enables control of home appliances using a web interface. It is built using a Spring Boot backend, a ReactJS frontend, and an Arduino to control the physical switches. The system allows users to monitor and control appliances from a user-friendly web application.
 
+## Preview
+![](assets/preview.gif)
+
 ## Technologies
 - Backend: Spring Boot (Java)
 - Frontend: ReactJS (JavaScript)
