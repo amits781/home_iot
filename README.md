@@ -25,7 +25,7 @@ This IoT project enables control of home appliances using a web interface. It is
 - Node.js (v14 or later)
 - MySQL
 - Arduino IDE for microcontroller programming
-- Python (to connect to voice assistant server)
+- Python (to connect to voice assistant server).
 
 ## Future Enhancements
 - Replace Rest connection between Arduino and Backend with Socket connection
