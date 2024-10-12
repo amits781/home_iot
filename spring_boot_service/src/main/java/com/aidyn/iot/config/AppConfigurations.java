@@ -18,7 +18,7 @@ import com.google.gson.Gson;
 public class AppConfigurations {
 
   // Timeout for all rest calls
-  private final static Integer REST_TIMEOUT = 4000;
+  private final static Integer REST_TIMEOUT = 10000;
 
   @Bean
   public Gson getGsonObject() {

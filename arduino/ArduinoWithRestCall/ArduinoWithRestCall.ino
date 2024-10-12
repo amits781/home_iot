@@ -2,10 +2,11 @@
 #include <ArduinoHttpClient.h>
 #include <WiFiS3.h>
 #include "ArduinoGraphics.h"
-#include "Arduino_LED_Matrix.h" 
+#include "Arduino_LED_Matrix.h"
 
-#include "network.h"  // Include a header file containing Wifi icons
-#include "wifi_cred.h" //Include the wifi secrects
+#include "network.h"         // Include a header file containing Wifi icons
+#include "wifiConnecting.h"  // Include a header file containing Wifi connecting animations
+#include "wifi_cred.h"       //Include the wifi secrects
 
 ///////please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;    // your network SSID (name)
@@ -26,7 +27,7 @@ const int powerOnPin = LED_BUILTIN;  // the number of the ON pin
 const int powerOffPin = 12;          // the number of the OFF pin
 
 // Variables will change:
-int onState = LOW;  // denotes power on status
+int onState = LOW;    // denotes power on status
 int offState = HIGH;  // denotes power off status
 
 // Generally, you should use "unsigned long" for variables that hold time
@@ -64,11 +65,11 @@ void setup() {
 
   // attempt to connect to WiFi network:
   while (status != WL_CONNECTED) {
+    displayConnectingAnimation();
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(ssid, pass);
-
     // wait 10 seconds for connection:
     delay(10000);
   }
@@ -106,17 +107,18 @@ void loop() {
             onState = HIGH;
             offState = LOW;
             updatePower();
-            displayText(powerOnMessage);
+            // displayText(powerOnMessage);
             sendJsonResponse(client, onState, selectNetworkLevel(rssiInt));
           } else if (currentLine.startsWith("GET /L")) {
             // Endpoint to turn off power
             offState = HIGH;
             onState = LOW;
             updatePower();
-            displayText(powerOffMessage);
+            // displayText(powerOffMessage);
             sendJsonResponse(client, onState, selectNetworkLevel(rssiInt));
           } else if (currentLine.startsWith("GET /S")) {
             // Endpoint to get power status
+            printWifiStrength();
             sendJsonResponse(client, onState, selectNetworkLevel(rssiInt));
           } else {
             // Default response for unsupported routes
@@ -148,12 +150,25 @@ void loop() {
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= wifiUpdateInterval) {
+
+    // If disconnected, attempt to reconnect
+    Serial.println("\nWi-Fi Status...");
+    Serial.println(WiFi.status());
+    if (WiFi.status() == WL_IDLE_STATUS) {
+      Serial.println("\nWi-Fi disconnected. Attempting to reconnect...");
+      displayConnectingAnimation();
+      reconnectWiFi();
+    } else {
+      Serial.println("Wi-Fi is still connected.");
+    }
+
+
     Serial.print("\nUpdating Wifi after: ");
-    Serial.print(((currentMillis - previousMillis)/1000));
+    Serial.print(((currentMillis - previousMillis) / 1000));
     Serial.print(" seconds\n");
     // save the last time you updated the Wifi
     previousMillis = currentMillis;
-    printWifiStrength();
+    
   }
 }
 
@@ -211,7 +226,7 @@ void printWifiStrength() {
   Serial.print("Signal strength (RSSI): ");
   Serial.println(rssiInt);
   displayWifiStrength(rssiInt);
-  
+
 
   // print the encryption type:
   byte encryption = WiFi.encryptionType();
@@ -228,7 +243,7 @@ int selectNetworkLevel(int signalStrength) {
     return 0;
   } else if (signalStrength <= -70) {
     return 1;
-  } else if (signalStrength <= -67) {
+  } else if (signalStrength <= -60) {
     return 2;
   } else {
     return 3;
@@ -249,7 +264,7 @@ void printMacAddress(byte mac[]) {
 }
 
 // Function to display wifi bars on Matrix LED
-void displayWifiStrength(int rssiInt){
+void displayWifiStrength(int rssiInt) {
   int wifiFrame = selectNetworkLevel(rssiInt);
   Serial.print("Wifi Strength: ");
   Serial.println(wifiFrame);
@@ -274,6 +289,31 @@ void displayText(const char* textToPrint) {
 
   matrix.endDraw();
 
-  // Display Wifi strength 
+  // Display Wifi strength
   displayWifiStrength(rssiInt);
+}
+
+
+// Function to attempt Wi-Fi reconnection
+void reconnectWiFi() {
+  while (WiFi.status() != WL_CONNECTED) {
+    displayConnectingAnimation();
+    Serial.print("Reconnecting to SSID: ");
+    Serial.println(ssid);
+    status = WiFi.begin(ssid, pass);
+    delay(10000);  // Wait 10 seconds between attempts
+  }
+
+  if (WiFi.status() != WL_IDLE_STATUS) {
+    Serial.println("Reconnected to Wi-Fi!");
+    printWifiDetails();  // Display Wi-Fi details after reconnection
+  } else {
+    Serial.println("Failed to reconnect after multiple attempts.");
+  }
+}
+
+void displayConnectingAnimation() {
+  matrix.clear();
+  matrix.loadSequence(wifiConnecting);
+  matrix.play(true);
 }
