@@ -1,5 +1,4 @@
 #include <WiFiClient.h>
-#include <ArduinoHttpClient.h>
 #include <WiFiS3.h>
 #include "ArduinoGraphics.h"
 #include "Arduino_LED_Matrix.h"
@@ -210,16 +209,6 @@ void printWifiDetails() {
 }
 
 void printWifiStrength() {
-  // print the SSID of the network you're attached to:
-  Serial.print("SSID: ");
-  Serial.println(WiFi.SSID());
-
-  // print the MAC address of the router you're attached to:
-  byte bssid[6];
-  WiFi.BSSID(bssid);
-  Serial.print("BSSID: ");
-  printMacAddress(bssid);
-
   // print the received signal strength:
   long rssi = WiFi.RSSI();
   rssiInt = (int)rssi;
@@ -227,12 +216,6 @@ void printWifiStrength() {
   Serial.println(rssiInt);
   displayWifiStrength(rssiInt);
 
-
-  // print the encryption type:
-  byte encryption = WiFi.encryptionType();
-  Serial.print("Encryption Type: ");
-  Serial.println(encryption, HEX);
-  Serial.println();
 }
 
 // Select level for wich wifi bar displays
