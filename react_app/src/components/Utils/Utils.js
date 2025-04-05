@@ -2,7 +2,7 @@ import config from '../../config.json';
 import CryptoJS from 'crypto-js';
 
 
-export const hostUrl = config.apiHostUrl;
+export const hostUrl = process.env.REACT_APP_HOST_URL || config.hostUrl;
 export const pixbayKey = config.pixbayKey;
 export const navbarHeight = 64;
 

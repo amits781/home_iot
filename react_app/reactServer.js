@@ -2,6 +2,7 @@ const express = require('express');
 const winston = require('winston');
 const fs = require('fs');
 const cors = require('cors');
+require('newrelic');
 
 // Create a Winston logger instance
 const logger = winston.createLogger({
@@ -69,7 +70,7 @@ app.get('/iot-actuator/health', cors(corsOptions), (req, res) => {
   // You can add more complex health checks here if needed
   const healthStatus = {
     status: 'UP',
-    version: '1.2.0',
+    version: '2.0.0',
   };
   res.json(healthStatus);
 });
