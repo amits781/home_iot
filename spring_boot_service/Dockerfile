@@ -12,7 +12,6 @@ FROM adoptopenjdk/openjdk11:jre-11.0.15_10-alpine
 COPY --from=build /opt/app/target/home-iot-controller-*.jar home-iot-controller.jar
 RUN mkdir -p /usr/local/newrelic
 ADD ./newrelic/newrelic.jar /usr/local/newrelic/newrelic.jar
-ADD ./newrelic/newrelic.yml /usr/local/newrelic/newrelic.yml
 
 
 EXPOSE 8080
