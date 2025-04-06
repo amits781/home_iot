@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: home-iot-springboot-deployment
+  namespace: home-iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: home-iot-springboot
+  template:
+    metadata:
+      labels:
+        app: home-iot-springboot
+    spec:
+      containers:
+        - name: home-iot-springboot-container
+          image: ${IMAGE}:${BUILD_NUMBER}
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /iot-actuator/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          env:
+            - name: ISS_URI
+              value: "${ISS_URI}"
+            - name: JWK_URI
+              value: "${JWK_URI}"
+            - name: MYSQL_HOST
+              value: "${MYSQL_HOST}"
+            - name: DATABASE
+              value: "${DATABASE}"
+            - name: DB_USER
+              value: "${DB_USER}"
+            - name: DB_PASSWORD
+              value: "${DB_PASSWORD}"
+            - name: EMAIL_PASSWORD
+              value: "${EMAIL_PASSWORD}"
+            - name: SENDER_EMAIL
+              value: "${SENDER_EMAIL}"
+            - name: SECRET_KEY
+              value: "${SECRET_KEY}"
+            - name: NEW_RELIC_LICENSE_KEY
+              value: "${NEW_RELIC_LICENSE_KEY}"
+            - name: NEW_RELIC_APP_NAME
+              value: "${NEW_RELIC_APP_NAME}"
+
+              
