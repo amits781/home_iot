@@ -52,6 +52,6 @@ newrelic.js
 psd
 thumb
 sketch
-/python_iot/*.ini
+/python_iot/newrelic.ini
 react_app/package-lock.json
 scripts/
