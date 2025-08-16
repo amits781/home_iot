@@ -1,0 +1,4 @@
+newrelic
+python-dotenv
+sinricpro
+requests
