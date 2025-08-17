@@ -2,8 +2,8 @@ node {
 
     // Declare boolean flags
     boolean buildPython = true
-    boolean buildReact = true
-    boolean buildSpring = true
+    boolean buildReact = false
+    boolean buildSpring = false
 
     stage('Checkout') {
         git url: 'https://github.com/amits781/home_iot.git', branch: 'main'
