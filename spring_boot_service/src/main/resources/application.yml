@@ -4,6 +4,9 @@ server:
     remote-ip-header: x-forwarded-for
     protocol-header: x-forwarded-proto
     accept-host-header: true
+    accesslog:
+      pattern: "%h %l %u %t \"%r\" %s %b"
+      enabled: true
   address: 0.0.0.0
 spring:
   datasource:
@@ -49,4 +52,6 @@ management:
   
 app:
   secret-key: ${SECRET_KEY}
+
+
 
