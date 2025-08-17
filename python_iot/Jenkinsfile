@@ -12,16 +12,20 @@ node {
     }
 
     stage('Generate newrelic.ini') {
-        withCredentials([string(credentialsId: 'PYTHON_NEW_RELIC_KEY_CRED', variable: 'NEW_RELIC_KEY')]) {
-            sh '''
-            export PYTHON_NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
-            envsubst < python_iot/newrelic_template.ini > python_iot/newrelic.ini
-            '''
+        dir('python_iot') {
+            withCredentials([string(credentialsId: 'PYTHON_NEW_RELIC_KEY_CRED', variable: 'NEW_RELIC_KEY')]) {
+                sh '''
+                export PYTHON_NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
+                envsubst < newrelic_template.ini > newrelic.ini
+                '''
+            }
         }
     }
 
     stage('Build Docker Image') {
-        dockerImage = docker.build("python-iot-device:latest", "--no-cache python_iot/")
+        dir('python_iot') {
+            dockerImage = docker.build("python-iot-device:latest", "--no-cache .")
+        }
     }
 
     stage('Cleanup Existing Container') {
