@@ -8,20 +8,20 @@ node {
 
     stage('Verify File Presence') {
         echo "Current directory: ${pwd()}"
-        sh 'ls -l'
+        sh "ls -l ${env.WORKSPACE}/python_iot"
     }
 
     stage('Generate newrelic.ini') {
         withCredentials([string(credentialsId: 'PYTHON_NEW_RELIC_KEY_CRED', variable: 'NEW_RELIC_KEY')]) {
             sh '''
             export PYTHON_NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
-            envsubst < newrelic_template.ini > newrelic.ini
+            envsubst < ${env.WORKSPACE}/python_iot/newrelic_template.ini > ${env.WORKSPACE}/python_iot/newrelic.ini
             '''
         }
     }
 
     stage('Build Docker Image') {
-        dockerImage = docker.build("python-iot-device:latest", "--no-cache .")
+        dockerImage = docker.build("python-iot-device:latest", "--no-cache ${env.WORKSPACE}/python_iot/")
     }
 
     stage('Cleanup Existing Container') {
