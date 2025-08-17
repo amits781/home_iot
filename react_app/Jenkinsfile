@@ -24,9 +24,5 @@ node {
         }
     }
 
-    post {
-        always {
-            echo 'React App build finished.'
-        }
-    }
+    echo 'React App build finished.'
 }
