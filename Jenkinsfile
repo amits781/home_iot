@@ -11,6 +11,8 @@ node {
         load 'react_app/Jenkinsfile'
     }
 
+    // Docker container cleanup stages
+
     stage('Run Spring Boot Service build') {
         load 'spring_boot_service/Jenkinsfile'
     }
@@ -72,7 +74,7 @@ node {
             string(credentialsId: 'REACT_APP_NEW_RELIC_LICENSE_KEY', variable: 'NEW_RELIC_LICENSE_KEY'),
             string(credentialsId: 'REACT_APP_NEW_RELIC_APP_NAME', variable: 'NEW_RELIC_APP_NAME')
         ]) {
-            sh '''
+            sh """
              docker run --rm \\
                 -d \\
                 --network iotnet \\
@@ -81,7 +83,7 @@ node {
                 -e NEW_RELIC_APP_NAME="${env.NEW_RELIC_APP_NAME}" \\
                 -p 3000:3000 \\
                 react_iot:latest
-            '''
+            """
         }
     }
 
@@ -101,17 +103,17 @@ node {
             string(credentialsId: 'PYTHON_SWITCH_ID', variable: 'SWITCH_ID'),
             string(credentialsId: 'PYTHON_SPRING_URL', variable: 'SPRING_URL')
         ]) {
-            sh '''
+            sh """
             docker run --rm \\
                 --network iotnet \\
                 -d \\
                 --name python_sinric_device \\
-                -e APP_KEY="$APP_KEY" \\
-                -e APP_SECRET="$APP_SECRET" \\
-                -e SWITCH_ID="$SWITCH_ID" \\
-                -e URL="$SPRING_URL" \\
+                -e APP_KEY="${env.APP_KEY}" \\
+                -e APP_SECRET="${env.APP_SECRET}" \\
+                -e SWITCH_ID="${env.SWITCH_ID}" \\
+                -e URL="${env.SPRING_URL}" \\
                 python-iot-device:latest
-            '''
+            """
         }
     }
 
