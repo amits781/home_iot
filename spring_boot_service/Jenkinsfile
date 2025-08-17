@@ -1,0 +1,69 @@
+node {
+    withCredentials([
+        string(credentialsId: 'SPRING_APP_ISS_URI_ID', variable: 'ISS_URI'),
+        string(credentialsId: 'SPRING_APP_JWK_URI_ID', variable: 'JWK_URI'),
+        string(credentialsId: 'SPRING_APP_DATABASE_ID', variable: 'DATABASE'),
+        string(credentialsId: 'SPRING_APP_DB_USER_ID', variable: 'DB_USER'),
+        string(credentialsId: 'SPRING_APP_DB_PASSWORD_ID', variable: 'DB_PASSWORD'),
+        string(credentialsId: 'SPRING_APP_EMAIL_PASSWORD_ID', variable: 'EMAIL_PASSWORD'),
+        string(credentialsId: 'SPRING_APP_SENDER_EMAIL_ID', variable: 'SENDER_EMAIL'),
+        string(credentialsId: 'SPRING_APP_SECRET_KEY_ID', variable: 'SECRET_KEY'),
+        string(credentialsId: 'SPRING_APP_MYSQL_HOST_ID', variable: 'MYSQL_HOST'),
+        string(credentialsId: 'SPRING_APP_MYSQL_PORT_ID', variable: 'MYSQL_PORT'),
+        string(credentialsId: 'SPRING_APP_NEW_RELIC_KEY_ID', variable: 'NEW_RELIC_KEY')
+    ]) {
+        stage('Show Docker Contexts') {
+            echo 'Listing Docker contexts...'
+            sh 'docker context ls'
+            echo 'Current Docker context:'
+            sh 'docker context show'
+        }
+
+        stage('Generate newrelic.yml') {
+            dir('newrelic') {
+                sh '''
+                export NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
+                envsubst < newrelic_template.yml > newrelic.yml
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            script {
+                dockerImage = docker.build("spring_boot_iot:latest", "--no-cache .")
+            }
+        }
+
+        stage('Cleanup Existing Container') {
+            sh '''
+            existing_container=$(docker ps -aq -f name=iot_spring_boot)
+            if [ ! -z "$existing_container" ]; then
+                docker rm -f $existing_container
+            fi
+            '''
+        }
+
+        stage('Run Docker Container') {
+            sh """
+            docker run --rm \\
+                -d \\
+                --network iotnet \\
+                --name iot_spring_boot \\
+                -e ISS_URI="${env.ISS_URI}" \\
+                -e JWK_URI="${env.JWK_URI}" \\
+                -e MYSQL_HOST="${env.MYSQL_HOST}" \\
+                -e MYSQL_PORT="${env.MYSQL_PORT}" \\
+                -e DATABASE="${env.DATABASE}" \\
+                -e DB_USER="${env.DB_USER}" \\
+                -e DB_PASSWORD="${env.DB_PASSWORD}" \\
+                -e EMAIL_PASSWORD="${env.EMAIL_PASSWORD}" \\
+                -e SENDER_EMAIL="${env.SENDER_EMAIL}" \\
+                -e SECRET_KEY="${env.SECRET_KEY}" \\
+                -p 8080:8080 \\
+                spring_boot_iot:latest
+            """
+        }
+    }
+
+    echo 'Pipeline finished.'
+}

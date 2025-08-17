@@ -9,12 +9,16 @@ node {
                 load 'Jenkinsfile'
             }
         }
-        // 'React App': {
-        //     load 'react_app/Jenkinsfile'
-        // },
-        // 'Spring Boot Service': {
-        //     load 'spring_boot_service/Jenkinsfile'
-        // }
+        'React App': {
+            dir('react_app') {
+                load 'Jenkinsfile'
+            }
+        },
+        'Spring Boot Service': {
+            dir('spring_boot_service') {
+                load 'Jenkinsfile'
+            }
+        }
     )
     echo 'All parallel sub-pipelines completed.'
 }

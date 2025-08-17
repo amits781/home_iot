@@ -1,0 +1,54 @@
+node {
+    // Environment variables from Jenkins credentials
+    withCredentials([
+        string(credentialsId: 'REACT_APP_PIXBAY_KEY_ID', variable: 'REACT_APP_PIXBAY_KEY'),
+        string(credentialsId: 'REACT_APP_CLERK_PUBLISHABLE_KEY_ID', variable: 'REACT_APP_CLERK_PUBLISHABLE_KEY'),
+        string(credentialsId: 'REACT_APP_HOST_URL_ID', variable: 'REACT_APP_HOST_URL'),
+        string(credentialsId: 'REACT_APP_NEW_RELIC_LICENSE_KEY_ID', variable: 'NEW_RELIC_LICENSE_KEY'),
+        string(credentialsId: 'REACT_APP_NEW_RELIC_APP_NAME_ID', variable: 'NEW_RELIC_APP_NAME')
+    ]) {
+        stage('Show Docker Contexts') {
+            echo 'Listing Docker contexts...'
+            sh 'docker context ls'
+            echo 'Current Docker context:'
+            sh 'docker context show'
+        }
+
+        stage('Build Docker Image') {
+            script {
+                def buildArgs = "--build-arg REACT_APP_PIXBAY_KEY=${env.REACT_APP_PIXBAY_KEY} " +
+                                "--build-arg REACT_APP_CLERK_PUBLISHABLE_KEY=${env.REACT_APP_CLERK_PUBLISHABLE_KEY} " +
+                                "--build-arg REACT_APP_HOST_URL=${env.REACT_APP_HOST_URL} ."
+                dockerImage = docker.build("react_iot:latest", buildArgs)
+            }
+        }
+
+        stage('Cleanup Existing Container') {
+            sh '''
+            existing_container=$(docker ps -aq -f name=iot_react)
+            if [ ! -z "$existing_container" ]; then
+                docker rm -f $existing_container
+            fi
+            '''
+        }
+
+        stage('Run Docker Container') {
+            sh """
+            docker run --rm \\
+                -d \\
+                --network iotnet \\
+                --name iot_react \\
+                -e NEW_RELIC_LICENSE_KEY="${env.NEW_RELIC_LICENSE_KEY}" \\
+                -e NEW_RELIC_APP_NAME="${env.NEW_RELIC_APP_NAME}" \\
+                -p 3000:3000 \\
+                react_iot:latest
+            """
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+    }
+}
