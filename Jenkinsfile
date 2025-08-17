@@ -1,7 +1,13 @@
 node {
+    stage('Checkout') {
+        git url: 'https://github.com/amits781/home_iot.git', branch: 'main'
+    }
+    
     parallel(
         'Python IoT': {
-            load 'python_iot/Jenkinsfile'
+            dir('python_iot') {
+                load 'Jenkinsfile'
+            }
         }
         // 'React App': {
         //     load 'react_app/Jenkinsfile'
@@ -12,3 +18,4 @@ node {
     )
     echo 'All parallel sub-pipelines completed.'
 }
+

@@ -7,9 +7,9 @@ stage('Show Docker Contexts') {
     sh 'docker context show'
 }
 
-stage('Checkout') {
-    git url: 'https://github.com/amits781/home_iot.git', branch: 'main'
-}
+// stage('Checkout') {
+//     git url: 'https://github.com/amits781/home_iot.git', branch: 'main'
+// }
 
 stage('Generate newrelic.ini') {
     dir('python_iot') {
