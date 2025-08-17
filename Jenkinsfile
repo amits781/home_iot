@@ -8,7 +8,7 @@ node {
             dir('python_iot') {
                 load 'Jenkinsfile'
             }
-        }
+        },
         'React App': {
             dir('react_app') {
                 load 'Jenkinsfile'
