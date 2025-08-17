@@ -56,12 +56,6 @@ node {
         }
     }
 
-    // Docker container cleanup stages
-
-    stage('Run Spring Boot Service build') {
-        load 'spring_boot_service/Jenkinsfile'
-    }
-
     stage('Cleanup Spring Boot App Existing Container') {
             sh '''
             existing_container=$(docker ps -aq -f name=iot_spring_boot)
