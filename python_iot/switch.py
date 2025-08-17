@@ -31,6 +31,7 @@ def operate_motor(operation):
     headers = {
         'Accept': '*/*',
         'Content-Type': 'application/json',
+        'Host': 'python_sinric_device',
     }
     data = {
         'secret': APP_KEY,
@@ -71,6 +72,7 @@ async def check_device_status_periodically(interval=10):
     headers = {
                 'Accept': '*/*',
                 'Content-Type': 'application/json',
+                'Host': 'python_sinric_device',
             }
     data = {
         'secret': APP_KEY
