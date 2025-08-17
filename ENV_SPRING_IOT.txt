@@ -1,0 +1,8 @@
+ISS_URI=https://robust-bobcat-22.clerk.accounts.dev
+JWK_URI=https://robust-bobcat-22.clerk.accounts.dev/.well-known/jwks.json
+DATABASE=iot
+DB_USER=root
+DB_PASSWORD=10110
+EMAIL_PASSWORD=dobsrlmawlqtwtzw
+SENDER_EMAIL=amit.crj.sim@gmail.com
+SECRET_KEY=1a061a33-3529-43cb-954b-f36ac691d152

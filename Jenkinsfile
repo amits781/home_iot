@@ -3,12 +3,57 @@ node {
         git url: 'https://github.com/amits781/home_iot.git', branch: 'main'
     }
 
-    stage('Run Python IoT build') {
-        load 'python_iot/Jenkinsfile'
+    stage('Python - Generate newrelic.ini') {
+        dir('python_iot') {
+            withCredentials([string(credentialsId: 'PYTHON_NEW_RELIC_KEY_CRED', variable: 'NEW_RELIC_KEY')]) {
+                sh '''
+                export PYTHON_NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
+                envsubst < newrelic_template.ini > newrelic.ini
+                '''
+            }
+        }
     }
 
-    stage('Run React App build') {
-        load 'react_app/Jenkinsfile'
+    stage('Python - Build Docker Image') {
+        dir('python_iot') {
+            dockerImage = docker.build("python-iot-device:latest", "--no-cache .")
+        }
+    }
+
+    stage('React - Build Docker Image') {
+        dir('react_app') {
+                script {
+                    withCredentials([
+                        string(credentialsId: 'REACT_APP_PIXBAY_KEY', variable: 'REACT_APP_PIXBAY_KEY'),
+                        string(credentialsId: 'REACT_APP_CLERK_PUBLISHABLE_KEY', variable: 'REACT_APP_CLERK_PUBLISHABLE_KEY'),
+                        string(credentialsId: 'REACT_APP_HOST_URL', variable: 'REACT_APP_HOST_URL')
+                    ]) {
+                        def buildArgs = "--build-arg REACT_APP_PIXBAY_KEY=${env.REACT_APP_PIXBAY_KEY} " +
+                                        "--build-arg REACT_APP_CLERK_PUBLISHABLE_KEY=${env.REACT_APP_CLERK_PUBLISHABLE_KEY} " +
+                                        "--build-arg REACT_APP_HOST_URL=${env.REACT_APP_HOST_URL} ."
+                        dockerImage = docker.build("react_iot:latest", buildArgs)
+                    }
+                }
+        }
+    }
+
+    stage('Spring - Generate newrelic.yml') {
+        dir('spring_boot_service/newrelic') {
+             withCredentials([string(credentialsId: 'SPRING_APP_NEW_RELIC_KEY', variable: 'NEW_RELIC_KEY')]) {
+                sh '''
+                export NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
+                envsubst < newrelic_template.yml > newrelic.yml
+                '''
+             }
+        }
+    }
+
+    stage('Spring - Build Docker Image') {
+        dir('spring_boot_service') {
+            script {
+                dockerImage = docker.build("spring_boot_iot:latest", "--no-cache .")
+            }
+        }
     }
 
     // Docker container cleanup stages
