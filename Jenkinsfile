@@ -40,10 +40,11 @@ node {
             string(credentialsId: 'SPRING_APP_MYSQL_PORT', variable: 'MYSQL_PORT')
         ]) {
             sh """
-            docker run --rm \\
+            docker run \\
                 -d \\
                 --network iotnet \\
                 --name iot_spring_boot \\
+                --restart unless-stopped \\
                 -e ISS_URI="${env.ISS_URI}" \\
                 -e JWK_URI="${env.JWK_URI}" \\
                 -e MYSQL_HOST="${env.MYSQL_HOST}" \\
@@ -75,8 +76,9 @@ node {
             string(credentialsId: 'REACT_APP_NEW_RELIC_APP_NAME', variable: 'NEW_RELIC_APP_NAME')
         ]) {
             sh """
-             docker run --rm \\
+             docker run \\
                 -d \\
+                --restart unless-stopped \\
                 --network iotnet \\
                 --name iot_react \\
                 -e NEW_RELIC_LICENSE_KEY="${env.NEW_RELIC_LICENSE_KEY}" \\
@@ -104,8 +106,9 @@ node {
             string(credentialsId: 'PYTHON_SPRING_URL', variable: 'SPRING_URL')
         ]) {
             sh """
-            docker run --rm \\
+            docker run \\
                 --network iotnet \\
+                --restart unless-stopped \\
                 -d \\
                 --name python_sinric_device \\
                 -e APP_KEY="${env.APP_KEY}" \\
