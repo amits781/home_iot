@@ -1,6 +1,7 @@
 FROM python:3.11-slim
 
 WORKDIR /app
+ENV TZ=Asia/Kolkata
 
 # Install Python dependencies from requirements.txt
 COPY requirements.txt .

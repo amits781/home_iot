@@ -13,6 +13,7 @@ COPY --from=build /opt/app/target/home-iot-controller-*.jar home-iot-controller.
 RUN mkdir -p /usr/local/newrelic
 ADD ./newrelic/newrelic.jar /usr/local/newrelic/newrelic.jar
 ADD ./newrelic/newrelic.yml /usr/local/newrelic/newrelic.yml
+ENV TZ=Asia/Kolkata
 
 
 EXPOSE 8080

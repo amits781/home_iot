@@ -35,7 +35,7 @@ RUN npm run build
 FROM node:20.9.0
 
 WORKDIR /app
-
+ENV TZ=Asia/Kolkata
 # Copy only what's needed to run the server and serve static files
 COPY --from=build /app/package*.json ./
 COPY --from=build /app/node_modules ./node_modules
