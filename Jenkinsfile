@@ -1,38 +1,11 @@
 pipeline {
     agent any
-
     environment {
         BUILD_PYTHON = 'true'
         BUILD_REACT = 'true'
         BUILD_SPRING = 'true'
-
-        // Inject all credentials as environment variables globally
-        PYTHON_NEW_RELIC_KEY_CRED = credentials('PYTHON_NEW_RELIC_KEY_CRED')
-        PYTHON_APP_KEY = credentials('PYTHON_APP_KEY')
-        PYTHON_APP_SECRET = credentials('PYTHON_APP_SECRET')
-        PYTHON_SWITCH_ID = credentials('PYTHON_SWITCH_ID')
-        PYTHON_SPRING_URL = credentials('PYTHON_SPRING_URL')
-
-        REACT_APP_PIXBAY_KEY = credentials('REACT_APP_PIXBAY_KEY')
-        REACT_APP_CLERK_PUBLISHABLE_KEY = credentials('REACT_APP_CLERK_PUBLISHABLE_KEY')
-        REACT_APP_HOST_URL = credentials('REACT_APP_HOST_URL')
-        REACT_APP_NEW_RELIC_LICENSE_KEY = credentials('REACT_APP_NEW_RELIC_LICENSE_KEY')
-        REACT_APP_NEW_RELIC_APP_NAME = credentials('REACT_APP_NEW_RELIC_APP_NAME')
-
-
-        SPRING_APP_NEW_RELIC_KEY = credentials('SPRING_APP_NEW_RELIC_KEY')
-        SPRING_APP_ISS_URI = credentials('SPRING_APP_ISS_URI')
-        SPRING_APP_JWK_URI = credentials('SPRING_APP_JWK_URI')
-        SPRING_APP_DATABASE = credentials('SPRING_APP_DATABASE')
-        SPRING_APP_DB_USER = credentials('SPRING_APP_DB_USER')
-        SPRING_APP_DB_PASSWORD = credentials('SPRING_APP_DB_PASSWORD')
-        SPRING_APP_EMAIL_PASSWORD = credentials('SPRING_APP_EMAIL_PASSWORD')
-        SPRING_APP_SENDER_EMAIL_ID = credentials('SPRING_APP_SENDER_EMAIL_ID')
-        SPRING_APP_SECRET_KEY = credentials('SPRING_APP_SECRET_KEY')
-        SPRING_APP_MYSQL_HOST = credentials('SPRING_APP_MYSQL_HOST')
-        SPRING_APP_MYSQL_PORT = credentials('SPRING_APP_MYSQL_PORT')
+        DOPPLER_TOKEN = credentials('jenkins-doppler-service-token')
     }
-
     stages {
         stage('Checkout') {
             steps {
@@ -41,77 +14,76 @@ pipeline {
         }
 
         stage('Python - Generate newrelic.ini') {
-            when {
-                expression { env.BUILD_PYTHON == 'true' }
-            }
+            when { expression { env.BUILD_PYTHON == 'true' } }
             steps {
                 dir('python_iot') {
                     sh '''
-                        envsubst < newrelic_template.ini > newrelic.ini
+                        doppler run -- bash -c '
+                            envsubst < newrelic_template.ini > newrelic.ini
+                        '
                     '''
                 }
             }
         }
 
         stage('Python - Build Docker Image') {
-            when {
-                expression { env.BUILD_PYTHON == 'true' }
-            }
+            when { expression { env.BUILD_PYTHON == 'true' } }
             steps {
                 dir('python_iot') {
-                    script {
-                        docker.build("python-iot-device:latest", "--no-cache .")
-                    }
+                    sh '''
+                        doppler run -- bash -c '
+                            docker build --no-cache -t python-iot-device:latest .
+                        '
+                    '''
                 }
             }
         }
 
         stage('React - Build Docker Image') {
-            when {
-                expression { env.BUILD_REACT == 'true' }
-            }
+            when { expression { env.BUILD_REACT == 'true' } }
             steps {
                 dir('react_app') {
-                    script {
-                        def buildArgs = "--build-arg REACT_APP_PIXBAY_KEY=$REACT_APP_PIXBAY_KEY " +
-                                        "--build-arg REACT_APP_CLERK_PUBLISHABLE_KEY=$REACT_APP_CLERK_PUBLISHABLE_KEY " +
-                                        "--build-arg REACT_APP_HOST_URL=$REACT_APP_HOST_URL ."
-                        docker.build("react-iot:latest", buildArgs)
-                    }
+                    sh '''
+                        doppler run -- bash -c '
+                            docker build \
+                                --build-arg REACT_APP_PIXBAY_KEY="$REACT_APP_PIXBAY_KEY" \
+                                --build-arg REACT_APP_CLERK_PUBLISHABLE_KEY="$REACT_APP_CLERK_PUBLISHABLE_KEY" \
+                                --build-arg REACT_APP_HOST_URL="$REACT_APP_HOST_URL" \
+                                -t react-iot:latest .
+                        '
+                    '''
                 }
             }
         }
 
         stage('Spring - Generate newrelic.yml') {
-            when {
-                expression { env.BUILD_SPRING == 'true' }
-            }
+            when { expression { env.BUILD_SPRING == 'true' } }
             steps {
                 dir('spring_boot_service/newrelic') {
                     sh '''
-                        envsubst < newrelic_template.yml > newrelic.yml
+                        doppler run -- bash -c '
+                            envsubst < newrelic_template.yml > newrelic.yml
+                        '
                     '''
                 }
             }
         }
 
         stage('Spring - Build Docker Image') {
-            when {
-                expression { env.BUILD_SPRING == 'true' }
-            }
+            when { expression { env.BUILD_SPRING == 'true' } }
             steps {
                 dir('spring_boot_service') {
-                    script {
-                        docker.build("spring-boot-iot:latest", "--no-cache .")
-                    }
+                    sh '''
+                        doppler run -- bash -c '
+                            docker build --no-cache -t spring-boot-iot:latest .
+                        '
+                    '''
                 }
             }
         }
 
         stage('Cleanup Spring Boot App Existing Container') {
-            when {
-                expression { env.BUILD_SPRING == 'true' }
-            }
+            when { expression { env.BUILD_SPRING == 'true' } }
             steps {
                 sh '''
                     existing_container=$(docker ps -aq -f name=iot-spring-boot)
@@ -123,36 +95,34 @@ pipeline {
         }
 
         stage('Run Spring Boot Docker Container') {
-            when {
-                expression { env.BUILD_SPRING == 'true' }
-            }
+            when { expression { env.BUILD_SPRING == 'true' } }
             steps {
                 sh '''
-                    docker run \\
-                        -d \\
-                        --network iotnet \\
-                        --name iot-spring-boot \\
-                        --restart unless-stopped \\
-                        -e ISS_URI="$SPRING_APP_ISS_URI" \\
-                        -e JWK_URI="$SPRING_APP_JWK_URI" \\
-                        -e MYSQL_HOST="$SPRING_APP_MYSQL_HOST" \\
-                        -e MYSQL_PORT="$SPRING_APP_MYSQL_PORT" \\
-                        -e DATABASE="$SPRING_APP_DATABASE" \\
-                        -e DB_USER="$SPRING_APP_DB_USER" \\
-                        -e DB_PASSWORD="$SPRING_APP_DB_PASSWORD" \\
-                        -e EMAIL_PASSWORD="$SPRING_APP_EMAIL_PASSWORD" \\
-                        -e SENDER_EMAIL="$SPRING_APP_SENDER_EMAIL_ID" \\
-                        -e SECRET_KEY="$SPRING_APP_SECRET_KEY" \\
-                        -p 8080:8080 \\
-                        spring-boot-iot:latest
+                    doppler run -- bash -c '
+                        docker run \
+                            -d \
+                            --network iotnet \
+                            --name iot-spring-boot \
+                            --restart unless-stopped \
+                            -e ISS_URI="$SPRING_APP_ISS_URI" \
+                            -e JWK_URI="$SPRING_APP_JWK_URI" \
+                            -e MYSQL_HOST="$SPRING_APP_MYSQL_HOST" \
+                            -e MYSQL_PORT="$SPRING_APP_MYSQL_PORT" \
+                            -e DATABASE="$SPRING_APP_DATABASE" \
+                            -e DB_USER="$SPRING_APP_DB_USER" \
+                            -e DB_PASSWORD="$SPRING_APP_DB_PASSWORD" \
+                            -e EMAIL_PASSWORD="$SPRING_APP_EMAIL_PASSWORD" \
+                            -e SENDER_EMAIL="$SPRING_APP_SENDER_EMAIL_ID" \
+                            -e SECRET_KEY="$SPRING_APP_SECRET_KEY" \
+                            -p 8080:8080 \
+                            spring-boot-iot:latest
+                    '
                 '''
             }
         }
-
+        
         stage('Cleanup Existing React App Container') {
-            when {
-                expression { env.BUILD_REACT == 'true' }
-            }
+            when { expression { env.BUILD_REACT == 'true' } }
             steps {
                 sh '''
                     existing_container=$(docker ps -aq -f name=iot-react)
@@ -164,28 +134,27 @@ pipeline {
         }
 
         stage('Run React App Docker Container') {
-            when {
-                expression { env.BUILD_REACT == 'true' }
-            }
+            when { expression { env.BUILD_REACT == 'true' } }
             steps {
                 sh '''
-                    docker run \\
-                        -d \\
-                        --restart unless-stopped \\
-                        --network iotnet \\
-                        --name iot-react \\
-                        -e NEW_RELIC_LICENSE_KEY="$REACT_APP_NEW_RELIC_LICENSE_KEY" \\
-                        -e NEW_RELIC_APP_NAME="$REACT_APP_NEW_RELIC_APP_NAME" \\
-                        -p 3000:3000 \\
-                        react-iot:latest
+                    doppler run -- bash -c '
+                        docker run \
+                            -d \
+                            --restart unless-stopped \
+                            --network iotnet \
+                            --name iot-react \
+                            -e NEW_RELIC_LICENSE_KEY="$REACT_APP_NEW_RELIC_LICENSE_KEY" \
+                            -e NEW_RELIC_APP_NAME="$REACT_APP_NEW_RELIC_APP_NAME" \
+                            -p 3000:3000 \
+                            react-iot:latest
+                    '
                 '''
             }
         }
 
+
         stage('Cleanup Existing Python IOT Container') {
-            when {
-                expression { env.BUILD_PYTHON == 'true' }
-            }
+            when { expression { env.BUILD_PYTHON == 'true' } }
             steps {
                 sh '''
                     existing_container=$(docker ps -aq -f name=python-sinric-device)
@@ -195,31 +164,31 @@ pipeline {
                 '''
             }
         }
-
+        
+        
         stage('Run Python IOT Docker Container') {
-            when {
-                expression { env.BUILD_PYTHON == 'true' }
-            }
+            when { expression { env.BUILD_PYTHON == 'true' } }
             steps {
                 sh '''
-                    docker run \\
-                        --network iotnet \\
-                        --restart unless-stopped \\
-                        -d \\
-                        --name python-sinric-device \\
-                        -e APP_KEY="$PYTHON_APP_KEY" \\
-                        -e APP_SECRET="$PYTHON_APP_SECRET" \\
-                        -e SWITCH_ID="$PYTHON_SWITCH_ID" \\
-                        -e URL="$PYTHON_SPRING_URL" \\
-                        python-iot-device:latest
+                    doppler run -- bash -c '
+                        docker run \
+                            --network iotnet \
+                            --restart unless-stopped \
+                            -d \
+                            --name python-sinric-device \
+                            -e APP_KEY="$PYTHON_APP_KEY" \
+                            -e APP_SECRET="$PYTHON_APP_SECRET" \
+                            -e SWITCH_ID="$PYTHON_SWITCH_ID" \
+                            -e URL="$PYTHON_SPRING_URL" \
+                            python-iot-device:latest
+                    '
                 '''
             }
         }
     }
-
     post {
         always {
-            echo 'All sequential sub-pipelines completed.'
+            echo 'All sequential services deployed.'
         }
     }
 }
