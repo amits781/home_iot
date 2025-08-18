@@ -11,6 +11,7 @@ This IoT project enables control of home appliances using a web interface. It is
 - Hardware: Arduino (Microcontroller)
 - Communication: REST API
 - Database: MySQL
+- Pipeline: Jenkins
   
 ## Features
 - Web-based Control Panel: Turn devices on or off through a web interface.
@@ -18,7 +19,7 @@ This IoT project enables control of home appliances using a web interface. It is
 - REST API: Exposes REST endpoints for communication between the frontend and backend.
 - Arduino Control: Arduino controls the physical switches based on API requests.
 - Security: Authentication and authorization using JWT.
-- Voice Assistant: Can be operated using Google Assistant/Bixby
+- Voice Assistant: Can be operated using Google Assistant/Bixby using sinricpro
 
 ## Prerequisites
 - Java 11 (or later)
