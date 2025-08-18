@@ -74,9 +74,9 @@ pipeline {
             steps {
                 dir('react_app') {
                     script {
-                        def buildArgs = "--build-arg REACT_APP_PIXBAY_KEY=${env.REACT_APP_PIXBAY_KEY} " +
-                                        "--build-arg REACT_APP_CLERK_PUBLISHABLE_KEY=${env.REACT_APP_CLERK_PUBLISHABLE_KEY} " +
-                                        "--build-arg REACT_APP_HOST_URL=${env.REACT_APP_HOST_URL} ."
+                        def buildArgs = "--build-arg REACT_APP_PIXBAY_KEY=$REACT_APP_PIXBAY_KEY " +
+                                        "--build-arg REACT_APP_CLERK_PUBLISHABLE_KEY=$REACT_APP_CLERK_PUBLISHABLE_KEY " +
+                                        "--build-arg REACT_APP_HOST_URL=$REACT_APP_HOST_URL ."
                         docker.build("react-iot:latest", buildArgs)
                     }
                 }
@@ -135,16 +135,16 @@ pipeline {
                         --network iotnet \\
                         --name iot-spring-boot \\
                         --restart unless-stopped \\
-                        -e ISS_URI='${env.ISS_URI}' \\
-                        -e JWK_URI='${env.JWK_URI}' \\
-                        -e MYSQL_HOST='${env.MYSQL_HOST}' \\
-                        -e MYSQL_PORT='${env.MYSQL_PORT}' \\
-                        -e DATABASE='${env.DATABASE}' \\
-                        -e DB_USER='${env.DB_USER}' \\
-                        -e DB_PASSWORD='${env.DB_PASSWORD}' \\
-                        -e EMAIL_PASSWORD='${env.EMAIL_PASSWORD}' \\
-                        -e SENDER_EMAIL='${env.SENDER_EMAIL}' \\
-                        -e SECRET_KEY='${env.SECRET_KEY}' \\
+                        -e ISS_URI='$ISS_URI' \\
+                        -e JWK_URI='$JWK_URI' \\
+                        -e MYSQL_HOST='$MYSQL_HOST' \\
+                        -e MYSQL_PORT='$MYSQL_PORT' \\
+                        -e DATABASE='$DATABASE' \\
+                        -e DB_USER='$DB_USER' \\
+                        -e DB_PASSWORD='$DB_PASSWORD' \\
+                        -e EMAIL_PASSWORD='$EMAIL_PASSWORD' \\
+                        -e SENDER_EMAIL='$SENDER_EMAIL' \\
+                        -e SECRET_KEY='$SECRET_KEY' \\
                         -p 8080:8080 \\
                         spring-boot-iot:latest
                 """
@@ -176,8 +176,8 @@ pipeline {
                         --restart unless-stopped \\
                         --network iotnet \\
                         --name iot-react \\
-                        -e NEW_RELIC_LICENSE_KEY='${env.REACT_NEW_RELIC_LICENSE_KEY}' \\
-                        -e NEW_RELIC_APP_NAME='${env.REACT_NEW_RELIC_APP_NAME}' \\
+                        -e NEW_RELIC_LICENSE_KEY='$REACT_NEW_RELIC_LICENSE_KEY' \\
+                        -e NEW_RELIC_APP_NAME='$REACT_NEW_RELIC_APP_NAME' \\
                         -p 3000:3000 \\
                         react-iot:latest
                 """
@@ -209,10 +209,10 @@ pipeline {
                         --restart unless-stopped \\
                         -d \\
                         --name python-sinric-device \\
-                        -e APP_KEY='${env.PYTHON_APP_KEY}' \\
-                        -e APP_SECRET='${env.PYTHON_APP_SECRET}' \\
-                        -e SWITCH_ID='${env.PYTHON_SWITCH_ID}' \\
-                        -e URL='${env.PYTHON_SPRING_URL}' \\
+                        -e APP_KEY='$PYTHON_APP_KEY' \\
+                        -e APP_SECRET='$PYTHON_APP_SECRET' \\
+                        -e SWITCH_ID='$PYTHON_SWITCH_ID' \\
+                        -e URL='$PYTHON_SPRING_URL' \\
                         python-iot-device:latest
                 """
             }
