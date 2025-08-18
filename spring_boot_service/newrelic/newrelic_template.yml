@@ -1,8 +1,5 @@
-
 common: &default_settings
-
   license_key: $SPRING_APP_NEW_RELIC_KEY
-
   agent_enabled: true
   app_name: 'Home-IOT-Controller'
   high_security: false
@@ -36,33 +33,26 @@ common: &default_settings
     enabled: true
     ignore_errors: akka.actor.ActorKilledException
     ignore_status_codes: 404
-
   transaction_events:
     enabled: true
     max_samples_stored: 2000
-
   distributed_tracing:
     enabled: true
     exclude_newrelic_header: false
-
   span_events:
     enabled: true
     max_samples_stored: 2000
     attributes:
       enabled: true
-
-
   cross_application_tracer:
     enabled: false
   thread_profiler:
     enabled: true
-
   browser_monitoring:
     auto_instrument: true
   class_transformer:
     com.newrelic.instrumentation.servlet-user:
       enabled: false
-
     com.newrelic.instrumentation.spring-aop-2:
       enabled: false
     com.newrelic.instrumentation.jdbc-resultset:
