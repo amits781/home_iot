@@ -103,6 +103,8 @@ pipeline {
                             -d \
                             --network iotnet \
                             --name iot-spring-boot \
+                            --memory="1g" \
+                            --cpus="1" \
                             --restart unless-stopped \
                             -e ISS_URI="$SPRING_APP_ISS_URI" \
                             -e JWK_URI="$SPRING_APP_JWK_URI" \
@@ -143,6 +145,8 @@ pipeline {
                             --restart unless-stopped \
                             --network iotnet \
                             --name iot-react \
+                            --memory="512m" \
+                            --cpus="1" \
                             -e NEW_RELIC_LICENSE_KEY="$REACT_APP_NEW_RELIC_LICENSE_KEY" \
                             -e NEW_RELIC_APP_NAME="$REACT_APP_NEW_RELIC_APP_NAME" \
                             -p 3000:3000 \
@@ -174,6 +178,8 @@ pipeline {
                         docker run \
                             --network iotnet \
                             --restart unless-stopped \
+                            --memory="512m" \
+                            --cpus="0.5" \
                             -d \
                             --name python-sinric-device \
                             -e APP_KEY="$PYTHON_APP_KEY" \
