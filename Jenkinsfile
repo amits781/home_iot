@@ -133,16 +133,16 @@ pipeline {
                         --network iotnet \\
                         --name iot-spring-boot \\
                         --restart unless-stopped \\
-                        -e ISS_URI='$SPRING_APP_ISS_URI' \\
-                        -e JWK_URI='$SPRING_APP_JWK_URI' \\
-                        -e MYSQL_HOST='$SPRING_APP_MYSQL_HOST' \\
-                        -e MYSQL_PORT='$SPRING_APP_MYSQL_PORT' \\
-                        -e DATABASE='$SPRING_APP_DATABASE' \\
-                        -e DB_USER='$SPRING_APP_DB_USER' \\
-                        -e DB_PASSWORD='$SPRING_APP_DB_PASSWORD' \\
-                        -e EMAIL_PASSWORD='$SPRING_APP_EMAIL_PASSWORD' \\
-                        -e SENDER_EMAIL='$SPRING_APP_SENDER_EMAIL_ID' \\
-                        -e SECRET_KEY='$SPRING_APP_SECRET_KEY' \\
+                        -e ISS_URI="$SPRING_APP_ISS_URI" \\
+                        -e JWK_URI="$SPRING_APP_JWK_URI" \\
+                        -e MYSQL_HOST="$SPRING_APP_MYSQL_HOST" \\
+                        -e MYSQL_PORT="$SPRING_APP_MYSQL_PORT" \\
+                        -e DATABASE="$SPRING_APP_DATABASE" \\
+                        -e DB_USER="$SPRING_APP_DB_USER" \\
+                        -e DB_PASSWORD="$SPRING_APP_DB_PASSWORD" \\
+                        -e EMAIL_PASSWORD="$SPRING_APP_EMAIL_PASSWORD" \\
+                        -e SENDER_EMAIL="$SPRING_APP_SENDER_EMAIL_ID" \\
+                        -e SECRET_KEY="$SPRING_APP_SECRET_KEY" \\
                         -p 8080:8080 \\
                         spring-boot-iot:latest
                 '''
@@ -174,8 +174,8 @@ pipeline {
                         --restart unless-stopped \\
                         --network iotnet \\
                         --name iot-react \\
-                        -e NEW_RELIC_LICENSE_KEY='$REACT_APP_NEW_RELIC_LICENSE_KEY' \\
-                        -e NEW_RELIC_APP_NAME='$REACT_APP_NEW_RELIC_APP_NAME' \\
+                        -e NEW_RELIC_LICENSE_KEY="$REACT_APP_NEW_RELIC_LICENSE_KEY" \\
+                        -e NEW_RELIC_APP_NAME="$REACT_APP_NEW_RELIC_APP_NAME" \\
                         -p 3000:3000 \\
                         react-iot:latest
                 '''
@@ -207,10 +207,10 @@ pipeline {
                         --restart unless-stopped \\
                         -d \\
                         --name python-sinric-device \\
-                        -e APP_KEY='$PYTHON_APP_KEY' \\
-                        -e APP_SECRET='$PYTHON_APP_SECRET' \\
-                        -e SWITCH_ID='$PYTHON_SWITCH_ID' \\
-                        -e URL='$PYTHON_SPRING_URL' \\
+                        -e APP_KEY="$PYTHON_APP_KEY" \\
+                        -e APP_SECRET="$PYTHON_APP_SECRET" \\
+                        -e SWITCH_ID="$PYTHON_SWITCH_ID" \\
+                        -e URL="$PYTHON_SPRING_URL" \\
                         python-iot-device:latest
                 '''
             }
