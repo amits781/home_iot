@@ -3,11 +3,11 @@ pipeline {
 
     environment {
         BUILD_PYTHON = 'true'
-        BUILD_REACT = 'false'
-        BUILD_SPRING = 'false'
+        BUILD_REACT = 'true'
+        BUILD_SPRING = 'true'
 
         // Inject all credentials as environment variables globally
-        NEW_RELIC_KEY = credentials('PYTHON_NEW_RELIC_KEY_CRED')
+        PYTHON_NEW_RELIC_KEY_CRED = credentials('PYTHON_NEW_RELIC_KEY_CRED')
         PYTHON_APP_KEY = credentials('PYTHON_APP_KEY')
         PYTHON_APP_SECRET = credentials('PYTHON_APP_SECRET')
         PYTHON_SWITCH_ID = credentials('PYTHON_SWITCH_ID')
@@ -16,21 +16,21 @@ pipeline {
         REACT_APP_PIXBAY_KEY = credentials('REACT_APP_PIXBAY_KEY')
         REACT_APP_CLERK_PUBLISHABLE_KEY = credentials('REACT_APP_CLERK_PUBLISHABLE_KEY')
         REACT_APP_HOST_URL = credentials('REACT_APP_HOST_URL')
-        REACT_NEW_RELIC_LICENSE_KEY = credentials('REACT_APP_NEW_RELIC_LICENSE_KEY')
-        REACT_NEW_RELIC_APP_NAME = credentials('REACT_APP_NEW_RELIC_APP_NAME')
+        REACT_APP_NEW_RELIC_LICENSE_KEY = credentials('REACT_APP_NEW_RELIC_LICENSE_KEY')
+        REACT_APP_NEW_RELIC_APP_NAME = credentials('REACT_APP_NEW_RELIC_APP_NAME')
 
 
-        SPRING_NEW_RELIC_KEY = credentials('SPRING_APP_NEW_RELIC_KEY')
-        ISS_URI = credentials('SPRING_APP_ISS_URI')
-        JWK_URI = credentials('SPRING_APP_JWK_URI')
-        DATABASE = credentials('SPRING_APP_DATABASE')
-        DB_USER = credentials('SPRING_APP_DB_USER')
-        DB_PASSWORD = credentials('SPRING_APP_DB_PASSWORD')
-        EMAIL_PASSWORD = credentials('SPRING_APP_EMAIL_PASSWORD')
-        SENDER_EMAIL = credentials('SPRING_APP_SENDER_EMAIL_ID')
-        SECRET_KEY = credentials('SPRING_APP_SECRET_KEY')
-        MYSQL_HOST = credentials('SPRING_APP_MYSQL_HOST')
-        MYSQL_PORT = credentials('SPRING_APP_MYSQL_PORT')   
+        SPRING_APP_NEW_RELIC_KEY = credentials('SPRING_APP_NEW_RELIC_KEY')
+        SPRING_APP_ISS_URI = credentials('SPRING_APP_ISS_URI')
+        SPRING_APP_JWK_URI = credentials('SPRING_APP_JWK_URI')
+        SPRING_APP_DATABASE = credentials('SPRING_APP_DATABASE')
+        SPRING_APP_DB_USER = credentials('SPRING_APP_DB_USER')
+        SPRING_APP_DB_PASSWORD = credentials('SPRING_APP_DB_PASSWORD')
+        SPRING_APP_EMAIL_PASSWORD = credentials('SPRING_APP_EMAIL_PASSWORD')
+        SPRING_APP_SENDER_EMAIL_ID = credentials('SPRING_APP_SENDER_EMAIL_ID')
+        SPRING_APP_SECRET_KEY = credentials('SPRING_APP_SECRET_KEY')
+        SPRING_APP_MYSQL_HOST = credentials('SPRING_APP_MYSQL_HOST')
+        SPRING_APP_MYSQL_PORT = credentials('SPRING_APP_MYSQL_PORT')
     }
 
     stages {
@@ -47,7 +47,6 @@ pipeline {
             steps {
                 dir('python_iot') {
                     sh '''
-                        export PYTHON_NEW_RELIC_LICENSE_KEY="$NEW_RELIC_KEY"
                         envsubst < newrelic_template.ini > newrelic.ini
                     '''
                 }
@@ -90,7 +89,6 @@ pipeline {
             steps {
                 dir('spring_boot_service/newrelic') {
                     sh '''
-                        export NEW_RELIC_LICENSE_KEY="$SPRING_NEW_RELIC_KEY"
                         envsubst < newrelic_template.yml > newrelic.yml
                     '''
                 }
@@ -135,16 +133,16 @@ pipeline {
                         --network iotnet \\
                         --name iot-spring-boot \\
                         --restart unless-stopped \\
-                        -e ISS_URI='$ISS_URI' \\
-                        -e JWK_URI='$JWK_URI' \\
-                        -e MYSQL_HOST='$MYSQL_HOST' \\
-                        -e MYSQL_PORT='$MYSQL_PORT' \\
-                        -e DATABASE='$DATABASE' \\
-                        -e DB_USER='$DB_USER' \\
-                        -e DB_PASSWORD='$DB_PASSWORD' \\
-                        -e EMAIL_PASSWORD='$EMAIL_PASSWORD' \\
-                        -e SENDER_EMAIL='$SENDER_EMAIL' \\
-                        -e SECRET_KEY='$SECRET_KEY' \\
+                        -e ISS_URI='$SPRING_APP_ISS_URI' \\
+                        -e JWK_URI='$SPRING_APP_JWK_URI' \\
+                        -e MYSQL_HOST='$SPRING_APP_MYSQL_HOST' \\
+                        -e MYSQL_PORT='$SPRING_APP_MYSQL_PORT' \\
+                        -e DATABASE='$SPRING_APP_DATABASE' \\
+                        -e DB_USER='$SPRING_APP_DB_USER' \\
+                        -e DB_PASSWORD='$SPRING_APP_DB_PASSWORD' \\
+                        -e EMAIL_PASSWORD='$SPRING_APP_EMAIL_PASSWORD' \\
+                        -e SENDER_EMAIL='$SPRING_APP_SENDER_EMAIL_ID' \\
+                        -e SECRET_KEY='$SPRING_APP_SECRET_KEY' \\
                         -p 8080:8080 \\
                         spring-boot-iot:latest
                 '''
@@ -176,8 +174,8 @@ pipeline {
                         --restart unless-stopped \\
                         --network iotnet \\
                         --name iot-react \\
-                        -e NEW_RELIC_LICENSE_KEY='$REACT_NEW_RELIC_LICENSE_KEY' \\
-                        -e NEW_RELIC_APP_NAME='$REACT_NEW_RELIC_APP_NAME' \\
+                        -e NEW_RELIC_LICENSE_KEY='$REACT_APP_NEW_RELIC_LICENSE_KEY' \\
+                        -e NEW_RELIC_APP_NAME='$REACT_APP_NEW_RELIC_APP_NAME' \\
                         -p 3000:3000 \\
                         react-iot:latest
                 '''

@@ -1,7 +1,7 @@
 
 common: &default_settings
 
-  license_key: $NEW_RELIC_LICENSE_KEY
+  license_key: $SPRING_APP_NEW_RELIC_KEY
 
   agent_enabled: true
   app_name: 'Home-IOT-Controller'
