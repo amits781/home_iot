@@ -129,7 +129,7 @@ pipeline {
                 expression { env.BUILD_SPRING == 'true' }
             }
             steps {
-                sh """
+                sh '''
                     docker run \\
                         -d \\
                         --network iotnet \\
@@ -147,7 +147,7 @@ pipeline {
                         -e SECRET_KEY='$SECRET_KEY' \\
                         -p 8080:8080 \\
                         spring-boot-iot:latest
-                """
+                '''
             }
         }
 
@@ -170,7 +170,7 @@ pipeline {
                 expression { env.BUILD_REACT == 'true' }
             }
             steps {
-                sh """
+                sh '''
                     docker run \\
                         -d \\
                         --restart unless-stopped \\
@@ -180,7 +180,7 @@ pipeline {
                         -e NEW_RELIC_APP_NAME='$REACT_NEW_RELIC_APP_NAME' \\
                         -p 3000:3000 \\
                         react-iot:latest
-                """
+                '''
             }
         }
 
@@ -203,7 +203,7 @@ pipeline {
                 expression { env.BUILD_PYTHON == 'true' }
             }
             steps {
-                sh """
+                sh '''
                     docker run \\
                         --network iotnet \\
                         --restart unless-stopped \\
@@ -214,7 +214,7 @@ pipeline {
                         -e SWITCH_ID='$PYTHON_SWITCH_ID' \\
                         -e URL='$PYTHON_SPRING_URL' \\
                         python-iot-device:latest
-                """
+                '''
             }
         }
     }
