@@ -2,16 +2,14 @@ package com.aidyn.iot;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @SpringBootApplication
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-@EnableScheduling
+@EnableMethodSecurity(prePostEnabled = true)
 public class HomeIotControllerApplication {
 
-  public static void main(String[] args) {
-    SpringApplication.run(HomeIotControllerApplication.class, args);
-  }
+    public static void main(String[] args) {
+        SpringApplication.run(HomeIotControllerApplication.class, args);
+    }
 
 }

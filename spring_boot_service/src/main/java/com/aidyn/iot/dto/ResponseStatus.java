@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ResponseStatus {
 
-  private int status;
-  private Object payload;
+    private int status;
+    private Object payload;
 }

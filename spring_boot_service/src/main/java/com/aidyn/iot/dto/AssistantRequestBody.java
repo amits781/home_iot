@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 public class AssistantRequestBody {
-  String secret;
-  String operation;
+    String secret;
+    String operation;
 }

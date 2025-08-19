@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ScopeValidator {
 
-  String roles();
+    String roles();
 
-  String organization();
+    String organization();
 }
