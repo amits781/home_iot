@@ -23,6 +23,20 @@ URL = os.environ.get('URL')
 
 motorStateLocal = 0 # Global reference to motor status
 
+@newrelic.agent.background_task(name='sinric-heartbeat', group='Task')
+async def send_power_state_heartbeat(interval=120):
+    global motorStateLocal
+    while True:
+        iotDeviceStatus = SinricProConstants.POWER_STATE_ON if motorStateLocal == 1 else SinricProConstants.POWER_STATE_OFF
+        client.event_handler.raise_event(
+            SWITCH_ID,
+            SinricProConstants.SET_POWER_STATE,
+            data={SinricProConstants.STATE: iotDeviceStatus}
+        )
+        test_log(message=f"Heartbeat: Updating server with motor power state ({iotDeviceStatus})", level=logging.INFO)
+        logger.info(f"Heartbeat: Updating server with motor power state ({iotDeviceStatus})")
+        await asyncio.sleep(interval)
+
 @newrelic.agent.background_task(name='motor-operate', group='Task')
 def operate_motor(operation):
     """
@@ -92,7 +106,7 @@ async def check_device_status_periodically(interval=10):
                 test_log(message=f"Last motor status: {motorStateLocal}", level=logging.INFO)
                 if motorStateLocal != motorStatus:
                     # Update the SinricPro about the current status.
-                    iotDeviceStatus = SinricProConstants.POWER_STATE_OFF if motorStatus == 0 else SinricProConstants.POWER_STATE_ON
+                    iotDeviceStatus = SinricProConstants.POWER_STATE_ON if motorStatus == 1 else SinricProConstants.POWER_STATE_OFF
                     client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
                     test_log(message=f"Updating motor status to: {motorStatus}", level=logging.INFO)
                     motorStateLocal = motorStatus
@@ -119,7 +133,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     client = SinricPro(APP_KEY, [SWITCH_ID], callbacks,
                        enable_log=False, restore_states=False, secret_key=APP_SECRET)
-    coroutines = asyncio.gather(check_device_status_periodically(), client.connect())
+    coroutines = asyncio.gather(check_device_status_periodically(), send_power_state_heartbeat(30), client.connect())
     loop.run_until_complete(coroutines)
 
 # To update the power state on server.
