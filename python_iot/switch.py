@@ -9,7 +9,11 @@ import json
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -34,7 +38,6 @@ async def send_power_state_heartbeat(interval=120):
             data={SinricProConstants.STATE: iotDeviceStatus}
         )
         test_log(message=f"Heartbeat: Updating server with motor power state ({iotDeviceStatus})", level=logging.INFO)
-        logger.info(f"Heartbeat: Updating server with motor power state ({iotDeviceStatus})")
         await asyncio.sleep(interval)
 
 @newrelic.agent.background_task(name='motor-operate', group='Task')
