@@ -179,7 +179,7 @@ pipeline {
                             --network iotnet \
                             --restart unless-stopped \
                             --memory="512m" \
-                            --cpus="0.5" \
+                            --cpus="0.2" \
                             -d \
                             --name python-sinric-device \
                             -e APP_KEY="$PYTHON_APP_KEY" \
