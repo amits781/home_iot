@@ -1,12 +1,12 @@
+import os
+import asyncio
 import newrelic.agent
 newrelic.agent.initialize('newrelic.ini') #This is required!
-import os
-from dotenv import load_dotenv
-from sinric import SinricPro, SinricProConstants
-import asyncio
 import requests
 import json
 import logging
+from dotenv import load_dotenv
+from sinricpro import SinricPro, SinricProSwitch, SinricProConfig
 
 # Configure logging
 logging.basicConfig(
@@ -16,8 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-# Load environment variables from .env file
+# Load environment variables
 load_dotenv()
 
 APP_KEY = os.environ.get('APP_KEY')
@@ -25,120 +24,113 @@ APP_SECRET = os.environ.get('APP_SECRET')
 SWITCH_ID = os.environ.get('SWITCH_ID')
 URL = os.environ.get('URL')
 
-motorStateLocal = 0 # Global reference to motor status
+motorStateLocal = 0 
 
-@newrelic.agent.background_task(name='sinric-heartbeat', group='Task')
-async def send_power_state_heartbeat(interval=120):
-    global motorStateLocal
-    while True:
-        iotDeviceStatus = SinricProConstants.POWER_STATE_ON if motorStateLocal == 1 else SinricProConstants.POWER_STATE_OFF
-        client.event_handler.raise_event(
-            SWITCH_ID,
-            SinricProConstants.SET_POWER_STATE,
-            data={SinricProConstants.STATE: iotDeviceStatus}
-        )
-        test_log(message=f"Heartbeat: Updating server with motor power state ({iotDeviceStatus})", level=logging.INFO)
-        await asyncio.sleep(interval)
-
-@newrelic.agent.background_task(name='motor-operate', group='Task')
-def operate_motor(operation):
+@newrelic.agent.background_task(name='sinric-OperateMotor', group='Task')
+def operate_motor(operation_bool):
     """
-    Make an API call to SpringBoot with desired operation.
+    Translates boolean state to string for your SpringBoot API.
     """
+    operation_str = "On" if operation_bool else "Off"
     headers = {
         'Accept': '*/*',
         'Content-Type': 'application/json',
         'Host': 'python-sinric-device',
     }
-    data = {
-        'secret': APP_KEY,
-        'operation': operation
-    }
+    data = {'secret': APP_KEY, 'operation': operation_str}
+    
     try:
         response = requests.post(f"{URL}/operate-motor", headers=headers, data=json.dumps(data))
         if response.status_code == 200:
-            logger.info(f"Motor Operation {operation} successful!")
-            return operation
+            logger.info(f"Motor Operation {operation_str} successful!")
+            return operation_bool
         else:
-            logger.error(f"Error in performing motor operation: HTTP Error: {response.status_code} - {response.text}")
-            operation = "On" if operation == "Off" else "Off"
-            return operation
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Exception in performing motor operation: {e}")
-        operation = "On" if operation == "Off" else "Off"
-        return operation
+            logger.error(f"API Error: {response.status_code}")
+            return not operation_bool
+    except Exception as e:
+        logger.error(f"Motor request failed: {e}")
+        return not operation_bool
 
-@newrelic.agent.background_task(name='motor-power-state-update', group='Task')
-def power_state(device_id, state):
-    global motorStateLocal
-    logger.info('Updating | device_id: {} state: {}'.format(device_id, state))
-    state = operate_motor(state)
-    motorStateLocal = 0 if state == "Off" else 1
-    return True, state
-
-
-@newrelic.agent.background_task(name='motor-power-state-update', group='Task')
-def test_log(message,level):
-    logger.log(msg=message, level=level)
-
-async def check_device_status_periodically(interval=10):
+@newrelic.agent.background_task(name='sinric-turn-on', group='Task')
+async def on_power_state(state: bool) -> bool:
     """
-    Periodically checks the device status by making an API call and updates it accordingly.
+    Callback triggered by SinricPro Cloud (Alexa/Google Home/App).
     """
     global motorStateLocal
-    headers = {
-                'Accept': '*/*',
-                'Content-Type': 'application/json',
-                'Host': 'python-sinric-device',
-            }
-    data = {
-        'secret': APP_KEY
-    }
+    logger.info(f"Cloud request: Turn motor {'ON' if state else 'OFF'}")
+    
+    # Execute the motor operation
+    success_state = operate_motor(state)
+    motorStateLocal = 1 if success_state else 0
+    
+    return True # Return True to acknowledge the command was received
+
+@newrelic.agent.background_task(name='sinric-check-spring-boot', group='Task')
+async def check_device_status_periodically(my_switch, interval=10):
+    """
+    Polls your SpringBoot server and pushes updates to SinricPro if changed.
+    """
+    global motorStateLocal
+    headers = {'Accept': '*/*', 'Content-Type': 'application/json', 'Host': 'python-sinric-device'}
+    data = {'secret': APP_KEY}
+    
     while True:
         try:
-            # The API request to check device status.
             response = requests.post(f"{URL}/motor-status", headers=headers, data=json.dumps(data))
             if response.status_code == 200:
-                # The response contains a JSON with {"status": 1} or {"status": 0}
                 status_data = response.json()
                 payload = status_data.get('payload', {})
-                motorStatus = payload.get('status', 0)  # Default to '0' if status is not present.
-                # logger.info(f"Current motor status: {motorStatus}")
-                # logger.info(f"Last motor status: {motorStateLocal}")
-                test_log(message=f"Current motor status: {motorStatus}", level=logging.INFO)
-                test_log(message=f"Last motor status: {motorStateLocal}", level=logging.INFO)
+                motorStatus = payload.get('status', 0) 
+                
                 if motorStateLocal != motorStatus:
-                    # Update the SinricPro about the current status.
-                    iotDeviceStatus = SinricProConstants.POWER_STATE_ON if motorStatus == 1 else SinricProConstants.POWER_STATE_OFF
-                    client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: iotDeviceStatus })
-                    test_log(message=f"Updating motor status to: {motorStatus}", level=logging.INFO)
+                    logger.info(f"Syncing local state {motorStatus} to SinricPro")
+                    # Push event to cloud: True for 1, False for 0
+                    await my_switch.send_power_state_event(bool(motorStatus))
                     motorStateLocal = motorStatus
-            else:
-                # logger.error(f"Error in checking motor status. HTTP Error: {response.status_code} - {response.text}")
-                # logger.warn(f"Setting motor power state to Off")
-                test_log(message=f"Error in checking motor status. HTTP Error: {response.status_code} - {response.text}", level=logging.ERROR)
-                test_log(message=f"Setting motor power state to Off", level=logging.WARN)
-                client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
-
         except Exception as e:
-            # logger.error(f"Exception occurred while checking motor status: {e}")
-            # logger.warn(f"Setting motor power state to Off")
-            test_log(message=f"Exception occurred while checking motor status: {e}", level=logging.ERROR)
-            test_log(message=f"Setting motor power state to Off", level=logging.WARN)
-            client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
-        await asyncio.sleep(interval)  # Wait for the specified interval before the next check.
+            logger.error(f"Status check failed: {e}")
+            
+        await asyncio.sleep(interval)
 
-callbacks = {
-    SinricProConstants.SET_POWER_STATE: power_state
-}
+@newrelic.agent.background_task(name='sinric-heartbeat', group='Task')
+async def send_power_state_heartbeat(my_switch, interval=30):
+    """
+    Forces a state update to SinricPro periodically.
+    """
+    while True:
+        await asyncio.sleep(interval)
+        state_to_send = bool(motorStateLocal)
+        logger.info(f"Heartbeat: Sending state {state_to_send} to cloud")
+        await my_switch.send_power_state_event(state_to_send)
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    client = SinricPro(APP_KEY, [SWITCH_ID], callbacks,
-                       enable_log=False, restore_states=False, secret_key=APP_SECRET)
-    coroutines = asyncio.gather(check_device_status_periodically(), send_power_state_heartbeat(30), client.connect())
-    loop.run_until_complete(coroutines)
+async def main():
+    # 1. Initialize SinricPro Instance
+    sinric_pro = SinricPro.get_instance()
 
-# To update the power state on server.
-# client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_ON })
-# client.event_handler.raise_event(SWITCH_ID, SinricProConstants.SET_POWER_STATE, data = {SinricProConstants.STATE: SinricProConstants.POWER_STATE_OFF })
+    # 2. Create the Switch Device
+    my_switch = SinricProSwitch(SWITCH_ID)
+
+    # 3. Register the Callback
+    my_switch.on_power_state(on_power_state)
+
+    # 4. Add device to the controller
+    sinric_pro.add(my_switch)
+
+    # 5. Setup Config
+    config = SinricProConfig(app_key=APP_KEY, app_secret=APP_SECRET)
+
+    try:
+        logger.info("Connecting to SinricPro...")
+        # Start the background tasks along with the connection
+        await asyncio.gather(
+            sinric_pro.begin(config),
+            check_device_status_periodically(my_switch),
+            send_power_state_heartbeat(my_switch)
+        )
+    except KeyboardInterrupt:
+        logger.info("Shutting down...")
+    finally:
+        await sinric_pro.stop()
+
+if __name__ == "__main__":
+    asyncio.run(main())

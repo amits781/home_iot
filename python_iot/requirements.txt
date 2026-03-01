@@ -1,4 +1,4 @@
 newrelic
 python-dotenv
-sinricpro
+sinricpro==5.2.1
 requests
