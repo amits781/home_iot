@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        BUILD_PYTHON = 'false'
-        BUILD_REACT = 'false'
+        BUILD_PYTHON = 'true'
+        BUILD_REACT = 'true'
         BUILD_SPRING = 'true'
         DOPPLER_TOKEN = credentials('jenkins-doppler-service-token')
     }
