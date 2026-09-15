@@ -17,6 +17,32 @@ import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
 import IconButton from '@mui/material/IconButton';
 import { useAuth } from "@clerk/clerk-react";
 import WifiSignal from '../WifiSignal/WifiSignal';
+import GlassPanel from '../LiquidGlass/GlassPanel';
+import { transparentPaperSx } from '../../theme/glass';
+
+// Tinted glass pill: sits on the GlassPanel's own blur/refraction, adding a
+// translucent colour wash instead of MUI's opaque `contained` fill so the
+// background still shows through. The glow lives here (not on GlassPanel's
+// square outer wrapper) so its box-shadow follows the pill's own rounded
+// corners instead of rendering as a square behind it.
+const glassButtonSx = (tintColor, glow) => ({
+  width: { xs: '100%', sm: 'auto' },
+  px: 4,
+  borderRadius: 999,
+  color: '#fff',
+  fontWeight: 600,
+  backgroundColor: `${tintColor}40`,
+  boxShadow: glow ? `0 0 28px 6px ${glow}` : 'none',
+  transition: 'box-shadow 0.3s ease, background-color 0.2s ease',
+  '&:hover': {
+    backgroundColor: `${tintColor}5c`,
+  },
+  '&.Mui-disabled': {
+    color: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    boxShadow: 'none',
+  },
+});
 
 export default function IotCard() {
 
@@ -167,44 +193,56 @@ export default function IotCard() {
 
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+  const turnOnDisabled = iotState.buttonOnCondition || iotState.buttonOnDisable;
+  const turnOffDisabled = !iotState.buttonOnCondition || iotState.buttonOffDisable;
+
   return (
-    <>
-      <Card raised={true} sx={{
-        width: { xs: 275, md: 350 }, background: (t) =>
-          t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-        boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
-      }}>
+    <GlassPanel borderRadius={28}>
+      <Card
+        raised={false}
+        sx={{
+          width: { xs: 340, sm: 420, md: 460 },
+          ...transparentPaperSx,
+        }}
+      >
         <Box sx={{ width: '100%', display: iotState.loadingDisplay }}>
           <LinearProgress color="inherit" />
         </Box>
-        <CardContent sx={{ paddingTop: "0px" }}>
+        <CardContent sx={{ paddingTop: '12px', px: { xs: 3, sm: 4 } }}>
           <Stack
             direction={{ xs: 'row' }}
             alignItems={{ xs: 'center' }}
             justifyContent="space-between"
             spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
+            sx={{ mb: 1 }}
           >
 
             <WifiSignal iconName={iotState.wifiStrength} />
-            <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+            <Typography sx={{ fontSize: '0.8rem' }} color="text.secondary" gutterBottom>
               Device status: {iotState.deviceStatus ? 'On' : 'Device not Reachable'}
             </Typography>
-            <IconButton aria-label="refresh" onClick={handleRefreshButtonClick} className={refreshButtonClass}>
-              <CachedRoundedIcon />
+            <IconButton
+              aria-label="refresh"
+              onClick={handleRefreshButtonClick}
+              className={refreshButtonClass}
+              size="large"
+            >
+              <CachedRoundedIcon fontSize="medium" />
             </IconButton>
 
           </Stack>
           <Stack
             direction={{ xs: 'column', sm: 'row' }}
-            spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
+            spacing={{ xs: 2, sm: 3, md: 4, lg: 5 }}
             alignItems={{ xs: 'center' }}
+            sx={{ my: 2 }}
           >
             <Box>
-              <CycloneOutlinedIcon sx={{ fontSize: '80px', borderRadius: '50px' }} className={iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? "start-motor" : "stop-motor" : ""} />
+              <CycloneOutlinedIcon sx={{ fontSize: '130px', borderRadius: '65px' }} className={iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? "start-motor" : "stop-motor" : ""} />
             </Box>
             <Box>
-              <Typography sx={{
-                mb: 1.5, textAlign: {
+              <Typography variant="h6" sx={{
+                mb: 1, fontWeight: 600, textAlign: {
                   xs: 'center',
                   sm: 'left',
                   md: 'left',
@@ -220,64 +258,53 @@ export default function IotCard() {
                   md: 'left',
                   lg: 'left',
                 }
-              }} variant="body2">
+              }} variant="body1">
                 Motor Status is: {iotState.deviceStatus ? iotState.motorStatus ? 'On' : 'Off' : 'N/A'}
               </Typography>
             </Box>
           </Stack>
         </CardContent>
-        <CardActions sx={{ paddingBottom: "0px" }}>
+        <CardActions sx={{ paddingBottom: '28px', px: { xs: 3, sm: 4 } }}>
           <Stack
             width={'100%'}
             justifyContent="space-around"
             direction={{ xs: 'column', sm: 'row' }}
-            spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
+            spacing={{ xs: 2, sm: 3, md: 4, lg: 5 }}
             alignItems={{ xs: 'center' }}
           >
-            <Button
-              variant="contained"
-              onClick={handleMotorOnButtonClick}
-              disabled={(iotState.buttonOnCondition || iotState.buttonOnDisable)}
-              sx={{
-                width: {
-                  xs: 'inherit',
-                  sm: 'inherit',
-                  md: 'inherit',
-                  lg: 'inherit',
-                },
-                margin: {
-                  xs: '20px 5px',
-                }
-              }}
-              // size={{xs : "large", lg: "small"}}
-              // fullWidth={{xs : true, lg: false}}
-              color="success">
-              Turn On</Button>
-            <Button
-              variant="contained"
-              onClick={handleMotorOffButtonClick}
-              disabled={(!iotState.buttonOnCondition || iotState.buttonOffDisable)}
-              sx={{
-                width: {
-                  xs: 'inherit',
-                  sm: 'inherit',
-                  md: 'inherit',
-                  lg: 'inherit',
-                },
-                margin: {
-                  xs: '20px 5px !important',
-                  lg: '0px 5px'
-                }
-              }}
-              // size="small"
-              // fullWidth={true}
-              color="error">
-              Turn Off
-            </Button>
+            <GlassPanel
+              borderRadius={999}
+              blur={10}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              <Button
+                variant="text"
+                size="large"
+                onClick={handleMotorOnButtonClick}
+                disabled={turnOnDisabled}
+                sx={glassButtonSx('#38c156', turnOnDisabled ? null : 'rgba(56,193,86,0.55)')}
+              >
+                Turn On
+              </Button>
+            </GlassPanel>
+            <GlassPanel
+              borderRadius={999}
+              blur={10}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
+            >
+              <Button
+                variant="text"
+                size="large"
+                onClick={handleMotorOffButtonClick}
+                disabled={turnOffDisabled}
+                sx={glassButtonSx('#d82a3f', turnOffDisabled ? null : 'rgba(216,42,63,0.55)')}
+              >
+                Turn Off
+              </Button>
+            </GlassPanel>
           </Stack>
         </CardActions>
-      </Card >
-    </>
-
+      </Card>
+    </GlassPanel>
   );
 }

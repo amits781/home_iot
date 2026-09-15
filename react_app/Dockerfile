@@ -1,5 +1,5 @@
 # Stage 1: Build React app
-FROM node:20.9.0 AS build
+FROM node:22 AS build
 
 WORKDIR /app
 
@@ -25,14 +25,16 @@ RUN npm install
 # Copy rest of the code
 COPY public ./public
 COPY src ./src
+COPY index.html .
+COPY vite.config.mjs .
 COPY reactServer.js .
-    
+
 
 # Build React app
 RUN npm run build
 
 # Stage 2: Run with Express
-FROM node:20.9.0
+FROM node:22
 
 WORKDIR /app
 ENV TZ=Asia/Kolkata

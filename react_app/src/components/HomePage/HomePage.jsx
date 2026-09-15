@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 import { getHeadersFromToken, hostUrl, navbarHeight } from '../Utils/Utils';
 import { useNavigate } from 'react-router-dom';
 import CardSkeleton from '../UtilComponent/CardSkeleton';
+import PageBackdrop from '../UtilComponent/PageBackdrop';
+import usePixabayBackground from '../Utils/usePixabayBackground';
 
 
 
@@ -17,6 +19,7 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
+  const backgroundImageUrl = usePixabayBackground('abstract dark', 'computer');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,21 +52,18 @@ export default function HomePage() {
       minHeight: `calc(100vh - ${navbarHeight}px)`,
       display: 'flex',
       flexDirection: 'column',
-      backgroundImage: `url(${"/static/rose_bg.jpeg"})`,
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
     }}>
+      <PageBackdrop imageUrl={backgroundImageUrl} />
       <CssBaseline />
       <Box
         sx={{
           width: "100%",
-          background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
-          backdropFilter: "blur(10px) !important",
-          padding: "60px 20px 0px 20px",
+          padding: "32px 20px",
           flexGrow: 1,
+          display: 'flex',
           alignItems: 'center',
-          overflow: 'auto'
+          justifyContent: 'center',
+          overflow: 'auto',
         }}
       >
 

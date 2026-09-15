@@ -10,7 +10,7 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import { IconButton, ListSubheader } from '@mui/material';
 import MyMenuItem from '../MyMenuItem/MyMenuItem';
-import { useTheme } from '@mui/material/styles';
+import GlassPanel from '../LiquidGlass/GlassPanel';
 
 export default function TemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -19,8 +19,6 @@ export default function TemporaryDrawer() {
     bottom: false,
     right: false,
   });
-
-  const theme = useTheme();
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -86,10 +84,31 @@ export default function TemporaryDrawer() {
             anchor={anchor}
             open={state[anchor]}
             onClose={toggleDrawer(anchor, false)}
-            sx={{ backdropFilter: 'blur(5px) !important' }}
-            className={theme.palette.mode === 'dark' ? 'darkPaper' : 'lightPaper'}
+            PaperProps={{
+              sx: {
+                backgroundColor: 'transparent',
+                backgroundImage: 'none',
+                boxShadow: 'none',
+                border: 'none',
+                overflow: 'hidden',
+              },
+            }}
           >
-            {list(anchor)}
+            {/*
+              This panel slides via CSS transform on every open/close, and a
+              full-height surface is a lot of area to re-run the SVG/backdrop
+              filter over each frame. Lighter blur/displacement here keeps
+              the slide smooth; the visual difference at this size is minor.
+            */}
+            <GlassPanel
+              borderRadius={24}
+              blur={8}
+              displacementScale={0.5}
+              sx={{ position: 'absolute', inset: 0, zIndex: 0 }}
+            />
+            <Box sx={{ position: 'relative', zIndex: 1 }}>
+              {list(anchor)}
+            </Box>
           </Drawer>
         </React.Fragment>
       ))}

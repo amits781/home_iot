@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import './SiginPage.css';
 import CssBaseline from '@mui/material/CssBaseline';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { SignIn } from "@clerk/clerk-react";
 import axios from 'axios';
+import GlassPanel from '../LiquidGlass/GlassPanel';
 
 function Copyright(props) {
   return (
@@ -19,7 +18,7 @@ function Copyright(props) {
   );
 }
 
-export default function SignInSide({ theme }) {
+export default function SignInSide() {
 
   const [videoSrc, setVideoSrc] = useState('');
   const [videoData, setVideoData] = useState([]);
@@ -44,7 +43,7 @@ export default function SignInSide({ theme }) {
       try {
         const response = await axios.get('https://pixabay.com/api/videos/', {
           params: {
-            key: process.env.REACT_APP_PIXBAY_KEY,
+            key: import.meta.env.REACT_APP_PIXBAY_KEY,
             q: 'nature,sky',
             orientation: 'horizontal',
             category: 'travel',
@@ -92,48 +91,84 @@ export default function SignInSide({ theme }) {
 
 
   return (
-    <Grid container component="main" sx={{
+    <Box component="main" sx={{
       height: "100vh",
-      // backgroundImage: `url(${"/static/rainBg1.jpg"})`,
-      // backgroundRepeat: 'no-repeat',
+      width: '100%',
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
       backgroundColor: 'rgba(0,0,0,0.0)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
     }}>
       <video id="background-video" autoPlay loop muted src={videoSrc} typeof="video/mp4">
       </video>
+      <Box sx={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.25)' }} />
       <CssBaseline />
-      <Grid item xs={12} sm={8} md={6} lg={5} component={Paper} elevation={6} square sx={{
-        background: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-        backdropFilter: "blur(10px) !important",
-      }}>
+      <GlassPanel borderRadius={32} sx={{ position: 'relative', zIndex: 1, m: 2 }}>
         <Box
           sx={{
-            my: 8,
-            mx: 4,
+            width: { xs: '80vw', sm: 440 },
+            px: { xs: 3, sm: 6 },
+            py: { xs: 4, sm: 7 },
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-
+            textAlign: 'center',
           }}
         >
 
-          <LockOutlinedIcon />
-          <Typography component="h1" variant="h5" sx={{
+          <LockOutlinedIcon sx={{ fontSize: { xs: 40, sm: 66 }, mb: 1.5 }} />
+          <Typography component="h1" variant="h4" sx={{
             fontFamily: 'monospace',
             fontWeight: 700,
-            letterSpacing: '.3rem',
+            letterSpacing: { xs: '.2rem', sm: '.35rem' },
             color: 'inherit',
             textDecoration: 'none',
+            fontSize: { xs: '2.1rem', sm: '3.2rem' },
           }}>
             AIDYN
           </Typography>
-          <Box sx={{ mt: 1 }}>
-            <SignIn />
-            <Copyright sx={{ mt: 5 }} />
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, mb: 1.5, fontSize: { xs: '1rem', sm: '1.5rem' } }}>
+            Sign in to continue
+          </Typography>
+          <Box sx={{ width: '100%' }}>
+            <SignIn
+              appearance={{
+                elements: {
+                  rootBox: { width: '100%' },
+                  cardBox: { width: '100%' },
+                  card: { width: '100%', boxSizing: 'border-box' },
+                  header: { display: 'none', padding: 0, margin: 0 },
+                  main: { width: '100%', boxSizing: 'border-box', paddingTop: 0, marginTop: 0 },
+                  socialButtons: {
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    gridTemplateColumns: '1fr',
+                    justifyItems: 'stretch',
+                    marginTop: 0,
+                  },
+                  socialButtonsBlockButton: {
+                    width: '100%',
+                    minWidth: 0,
+                    boxSizing: 'border-box',
+                    justifyContent: 'center',
+                  },
+                  socialButtonsBlockButtonText: {
+                    fontSize: '0.95em',
+                    overflow: 'visible',
+                    whiteSpace: 'normal',
+                  },
+                  socialButtonsBlockButtonArrow: {
+                    display: 'none',
+                  },
+                },
+              }}
+            />
+            <Copyright sx={{ mt: 5, fontSize: { xs: '0.85rem', sm: '1.3rem' } }} />
           </Box>
         </Box>
-      </Grid>
-    </Grid>
+      </GlassPanel>
+    </Box>
   );
 }

@@ -16,6 +16,8 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import moment from 'moment';
+import GlassPanel from '../LiquidGlass/GlassPanel';
+import { transparentPaperSx } from '../../theme/glass';
 
 
 const formatDate = (value) => {
@@ -136,10 +138,9 @@ export default function StickyHeadTable({ activityState }) {
   
 
   return (
-    <Paper sx={{ width: '100%', background: (t) =>
-    t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-  boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',}}>
-    
+    <GlassPanel borderRadius={20} sx={{ width: '100%' }}>
+    <Paper sx={{ width: '100%', ...transparentPaperSx }}>
+
     {/* <EnhancedTableToolbar numSelected={0} /> */}
       <TableContainer sx={{ maxHeight: 440, }}>
         <Table stickyHeader aria-label="sticky table">
@@ -188,5 +189,6 @@ export default function StickyHeadTable({ activityState }) {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
     </Paper>
+    </GlassPanel>
   );
 }

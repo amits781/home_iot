@@ -18,12 +18,17 @@ import { getHeadersFromToken, hostUrl, navbarHeight } from '../Utils/Utils';
 import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
 import DataSkeleton from '../UtilComponent/DataSkeleton';
+import PageBackdrop from '../UtilComponent/PageBackdrop';
 import moment from 'moment';
+import GlassPanel from '../LiquidGlass/GlassPanel';
+import { transparentPaperSx } from '../../theme/glass';
+import usePixabayBackground from '../Utils/usePixabayBackground';
 
 const ActivityPage = () => {
 
   const { getToken } = useAuth();
   const navigate = useNavigate();
+  const backgroundImageUrl = usePixabayBackground('abstract dark', 'computer');
   const [activityState, setActivityState] = useState({
     data: [],
     filteredData: [],
@@ -160,70 +165,86 @@ const ActivityPage = () => {
 
   function ActivityPageSummary() {
     return (<React.Fragment>
-      <Grid xs={6} md={8} display="flex" justifyContent="left" alignItems="left">
-        <Card sx={{
-          minWidth: { sm: 275, xs: '100%' },
-          overflow: 'auto',
-          textAlign: { xs: 'center', sm: 'left' },
-          background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-          boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
-        }}>
-          <CardContent>
-            <Typography sx={{ fontSize: 14, marginBottom: 2 }} color="text.secondary" gutterBottom>
-              Filter Data
-            </Typography>
-            <DatePicker
-              sx={{ margin: 1 }}
-              label="From"
-              disableFuture={true}
-              minDate={minDate}
-              defaultValue={selectedFromDate}
-              views={['year', 'month', 'day']}
-              onChange={(date) => handleDateChange(date, setSelectedFromDate)}
-              slotProps={{
-                textField: { size: 'small' }
-              }} />
-            <DatePicker
-              sx={{ margin: 1 }}
-              label="To"
-              disableFuture={true}
-              minDate={selectedFromDate}
-              defaultValue={selectedToDate}
-              onChange={(date) => handleDateChange(date, setSelectedToDate)}
-              views={['year', 'month', 'day']}
-              slotProps={{
-                textField: { size: 'small' }
-              }} />
-          </CardContent>
-        </Card>
-      </Grid>
-      <Grid xs={6} md={4} display="flex" justifyContent="right" alignItems="right">
-        <Card sx={{
-          minWidth: { sm: 275, xs: '100%' },
-          overflow: 'auto',
-          textAlign: { xs: 'left' },
-          display: 'flex',
-          alignItems: 'center',
-          background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(225,225,225,0.4)',
-          boxShadow: (t) => t.palette.mode === 'dark' ? '0px 0px 16px -2px rgba(255,255,255,0.1)' : '',
-        }}>
-          <CardContent>
-            <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-              Total consumption
-            </Typography>
-            <Typography variant='body' sx={{ fontSize: { xs: '2rem', sm: '4rem' } }}>
-              <Stack
-                direction="row"
-                spacing={1}
-                justifyContent={{ xs: 'center', sm: 'left' }}
-                alignItems={{ xs: 'center', sm: 'left' }}
-              >
-                <span>&#8377;</span>
-                <AnimatedNumbersCustom num={((activityState.filteredSumOfDurations / 3600) * 6)} />
+      <Grid xs={12} md={8} display="flex" justifyContent="left" alignItems="left">
+        <GlassPanel borderRadius={20} sx={{ width: '100%' }}>
+          <Card sx={{
+            minWidth: { sm: 275, xs: '100%' },
+            overflow: 'auto',
+            textAlign: { xs: 'center', sm: 'left' },
+            ...transparentPaperSx,
+          }}>
+            <CardContent sx={{ py: 1.5 }}>
+              <Typography sx={{ fontSize: '0.8rem', marginBottom: 1 }} color="text.secondary" gutterBottom>
+                Filter Data
+              </Typography>
+              <Stack direction="row" spacing={1}>
+                <DatePicker
+                  sx={{ flex: 1, minWidth: 0 }}
+                  label="From"
+                  disableFuture={true}
+                  minDate={minDate}
+                  defaultValue={selectedFromDate}
+                  views={['year', 'month', 'day']}
+                  onChange={(date) => handleDateChange(date, setSelectedFromDate)}
+                  slotProps={{
+                    textField: { size: 'small' }
+                  }} />
+                <DatePicker
+                  sx={{ flex: 1, minWidth: 0 }}
+                  label="To"
+                  disableFuture={true}
+                  minDate={selectedFromDate}
+                  defaultValue={selectedToDate}
+                  onChange={(date) => handleDateChange(date, setSelectedToDate)}
+                  views={['year', 'month', 'day']}
+                  slotProps={{
+                    textField: { size: 'small' }
+                  }} />
               </Stack>
-            </Typography>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </GlassPanel>
+      </Grid>
+      <Grid xs={12} md={4} display="flex" justifyContent="right" alignItems="right">
+        {/*
+          The rupee figure animates continuously (spring-driven digit
+          ticks). Putting animating content *inside* a GlassPanel forces the
+          browser to recompute the expensive backdrop/SVG filter on every
+          animation frame. Keeping GlassPanel as a plain, static background
+          layer and the animating Card as a normal sibling on top lets the
+          browser composite them independently, so the glass is computed
+          once and only the (cheap, transform-based) number repaints.
+        */}
+        <Box sx={{ position: 'relative', width: '100%' }}>
+          <GlassPanel borderRadius={20} sx={{ position: 'absolute', inset: 0, zIndex: 0 }} />
+          <Card sx={{
+            position: 'relative',
+            zIndex: 1,
+            minWidth: { sm: 275, xs: '100%' },
+            overflow: 'auto',
+            textAlign: { xs: 'left' },
+            display: 'flex',
+            alignItems: 'center',
+            ...transparentPaperSx,
+          }}>
+            <CardContent>
+              <Typography sx={{ fontSize: '0.8rem' }} color="text.secondary" gutterBottom>
+                Total consumption
+              </Typography>
+              <Typography variant='body' sx={{ fontSize: { xs: '2rem', sm: '4rem' } }}>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  justifyContent={{ xs: 'center', sm: 'left' }}
+                  alignItems={{ xs: 'center', sm: 'left' }}
+                >
+                  <span>&#8377;</span>
+                  <AnimatedNumbersCustom num={((activityState.filteredSumOfDurations / 3600) * 6)} />
+                </Stack>
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
       </Grid>
     </React.Fragment>);
   }
@@ -231,22 +252,16 @@ const ActivityPage = () => {
   return (
     <React.Fragment>
       <CssBaseline />
+      <PageBackdrop imageUrl={backgroundImageUrl} />
       <Container maxWidth="false" sx={{
         margin: 0,
-        backgroundImage: `url(${"/static/rose_bg.jpeg"})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         padding: '0px !important',
         overflow: 'auto',
         minHeight: `calc(100vh - ${navbarHeight}px)`,
         display: 'flex',
         flexDirection: 'column',
       }}>
-        <Box sx={{
-          flexGrow: 1, background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
-          backdropFilter: "blur(10px) !important", paddingTop: '20px', overflow: 'auto'
-        }}>
+        <Box sx={{ flexGrow: 1, paddingTop: '20px', overflow: 'auto' }}>
           <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ margin: '0 20px' }}>
             {
               loading ? <React.Fragment /> : <ActivityPageSummary />

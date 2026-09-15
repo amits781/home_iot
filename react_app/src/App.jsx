@@ -15,15 +15,16 @@ import {
 import { dark } from '@clerk/themes';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
+import { GLASS_RADIUS, glassSurfaceStyle, appBackgroundStyle } from './theme/glass';
 
 const ColorModeContext = React.createContext({ toggleColorMode: () => { } });
 
 function App() {
-  if (!process.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
+  if (!import.meta.env.REACT_APP_CLERK_PUBLISHABLE_KEY) {
     throw new Error("Missing Publishable Key");
   }
 
-  const clerkPubKey = process.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
+  const clerkPubKey = import.meta.env.REACT_APP_CLERK_PUBLISHABLE_KEY;
   const [mode, setMode] = React.useState('dark');
   const colorMode = React.useMemo(
     () => ({
@@ -43,6 +44,78 @@ function App() {
             contrastText: '#000',
             mainTransparent: '#e34040b3',
           }
+        },
+        shape: { borderRadius: GLASS_RADIUS },
+        typography: {
+          // App-wide baseline: body/UI text renders at 0.8rem.
+          // Headings (h1-h6) are untouched.
+          body1: { fontSize: '0.8rem' },
+          body2: { fontSize: '0.8rem' },
+          subtitle1: { fontSize: '0.8rem' },
+          subtitle2: { fontSize: '0.8rem' },
+          button: { fontSize: '0.8rem' },
+          caption: { fontSize: '0.8rem' },
+          overline: { fontSize: '0.8rem' },
+        },
+        components: {
+          MuiCssBaseline: {
+            styleOverrides: {
+              body: appBackgroundStyle(mode),
+              '*': {
+                scrollbarWidth: 'none', // Firefox
+                msOverflowStyle: 'none', // old Edge/IE
+              },
+              '*::-webkit-scrollbar': {
+                display: 'none', // Chrome/Safari/new Edge
+              },
+            },
+          },
+          MuiPaper: {
+            styleOverrides: {
+              // No explicit borderRadius here: Paper already applies
+              // theme.shape.borderRadius unless its `square` prop is set,
+              // and hardcoding it here would override that opt-out.
+              root: glassSurfaceStyle(mode),
+            },
+          },
+          MuiButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 14,
+                textTransform: 'none',
+                fontWeight: 600,
+              },
+              contained: {
+                backgroundImage:
+                  'linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 60%)',
+                boxShadow: '0 8px 20px -6px rgba(0,0,0,0.35)',
+              },
+            },
+          },
+          MuiListItemButton: {
+            styleOverrides: {
+              root: {
+                borderRadius: 14,
+                margin: '2px 8px',
+                width: 'auto',
+              },
+            },
+          },
+          // These two hardcode their own px font sizes rather than reading
+          // a `typography` variant, so the blanket 0.8rem baseline above
+          // doesn't reach them.
+          MuiListSubheader: {
+            styleOverrides: {
+              root: { fontSize: '0.8rem' },
+            },
+          },
+          MuiTablePagination: {
+            styleOverrides: {
+              root: { fontSize: '0.8rem' },
+              selectLabel: { fontSize: '0.8rem' },
+              displayedRows: { fontSize: '0.8rem' },
+            },
+          },
         },
       }),
     [mode],
@@ -95,7 +168,7 @@ function App() {
               </>
             </SignedIn>
             <SignedOut>
-              <SignInSide theme={theme} />
+              <SignInSide />
             </SignedOut>
           </ClerkProvider>
         </ThemeProvider>

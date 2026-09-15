@@ -6,6 +6,7 @@ import CardActions from '@mui/material/CardActions';
 import { useClerk } from "@clerk/clerk-react";
 import './ErrorPage.css';
 import Typography from '@mui/material/Typography';
+import { glassOverlayStyle } from '../../theme/glass';
 
 function ErrorPage() {
 
@@ -39,16 +40,17 @@ function ErrorPage() {
         }}>
             <CssBaseline />
             <Box
-                sx={{
-                    width: "100%",
-                    height: "fill-content",
-                    background: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(225,225,225,0.4)',
-                    backdropFilter: "blur(10px) !important",
-                    padding: "60px 20px 0px 20px",
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'left',
-                }}
+                sx={[
+                    {
+                        width: "100%",
+                        height: "fill-content",
+                        padding: "60px 20px 0px 20px",
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'left',
+                    },
+                    (t) => glassOverlayStyle(t.palette.mode),
+                ]}
             >
                 <Stack
                     direction={{ xs: 'column', sm: 'column' }}

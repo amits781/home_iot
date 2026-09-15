@@ -5,17 +5,19 @@
 
 
   .cl-card div:nth-child(n+4),
-  .cl-footer {
+  .cl-footer,
+  .cl-header,
+  .cl-headerTitle,
+  .cl-headerSubtitle {
     display: none;
   }
 
   .cl-socialButtons {
-    background: rgba(254, 254, 254, 0.25);
-    box-shadow: 0 8px 32px 0 rgba(66, 66, 66, 0.37);
-    backdrop-filter: blur(8.5px);
-    -webkit-backdrop-filter: blur(8.5px);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
   }
 
   #background-video {

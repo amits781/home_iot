@@ -8,7 +8,7 @@ import './WifiSignal.css';
 
 const WifiSignal = (props) => {
   let icon;
-  let iconStyle = {padding: "8px", minWidth: "40px", minHeight: "40px"};
+  let iconStyle = {padding: "8px", minWidth: "48px", minHeight: "48px", fontSize: "32px"};
 
   if (props.iconName === 1) {
     icon = <NetworkWifi1BarIcon style={iconStyle}/>; 

@@ -10,9 +10,9 @@ function AnimatedNumbersCustom({ num }) {
         animateToNumber={num}
         locale="en-IN"
         configs={[
-          {"mass":1,"tension":30,"friction":10},
-          {"mass":2,"tension":40,"friction":10},
-          {"mass":3,"tension":30,"friction":10},
+          {"mass":1,"tension":220,"friction":30},
+          {"mass":1,"tension":220,"friction":30},
+          {"mass":1,"tension":220,"friction":30},
         ]}
       ></AnimatedNumbers>
     </span>

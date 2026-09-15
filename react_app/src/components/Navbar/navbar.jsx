@@ -1,5 +1,4 @@
 import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
@@ -15,6 +14,7 @@ import {
   UserButton,
 } from "@clerk/clerk-react";
 import TemporaryDrawer from '../DrawerSwipe/DrawerSwipe';
+import GlassPanel from '../LiquidGlass/GlassPanel';
 
 const pages = [];
 const siteName = 'AIDYN';
@@ -31,9 +31,19 @@ function ResponsiveAppBar({ colorMode, theme }) {
   };
 
   return (
-    <AppBar position="sticky">
+    <Box
+      component="header"
+      sx={{
+        position: 'sticky',
+        top: 12,
+        mx: { xs: 1, sm: 2, md: 3 },
+        zIndex: (t) => t.zIndex.appBar,
+        color: 'text.primary',
+      }}
+    >
+      <GlassPanel borderRadius={24} sx={{ width: '100%' }}>
       <Container maxWidth="false">
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{ minHeight: { xs: 64, sm: 72 } }}>
           <TemporaryDrawer />
           {/* <HubTwoToneIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
           <Typography
@@ -121,8 +131,8 @@ function ResponsiveAppBar({ colorMode, theme }) {
             ))}
           </Box>
           <Box sx={{ flexGrow: 0 }}>
-            <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
-              {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+            <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit" size="large">
+              {theme.palette.mode === 'dark' ? <Brightness7Icon fontSize="medium" /> : <Brightness4Icon fontSize="medium" />}
             </IconButton>
           </Box>
           <Box sx={{ flexGrow: 0 }}>
@@ -130,7 +140,8 @@ function ResponsiveAppBar({ colorMode, theme }) {
           </Box>
         </Toolbar>
       </Container>
-    </AppBar>
+      </GlassPanel>
+    </Box>
   );
 }
 export default ResponsiveAppBar;
