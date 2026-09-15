@@ -2,7 +2,6 @@ package com.aidyn.iot.utils;
 
 public class MotorConstants {
 
-    public final static String ARDUINO_HOST = "http://192.168.50.43";
     public final static String TURN_ON_API = "H";
     public final static String TURN_OFF_API = "L";
     public final static String STATUS_API = "S";
@@ -12,5 +11,6 @@ public class MotorConstants {
     public final static String DEVICE_TYPE_POWER = "Power";
     public final static String OPERATER_TYPE_SYSTEM = "SYSTEM";
     public final static String ASSISTANT_EMAIL = "automation@aidyn.com";
+    public final static double RATE_PER_HOUR = 6.0;
 
 }

@@ -6,8 +6,6 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import { styled } from '@mui/material/styles';
 import StickyHeadTable from '../StickyHeadTable/StickyHeadTable';
 import AnimatedNumbersCustom from '../AnimatedNumbers/AnimatedNumbers';
 import Grid from '@mui/material/Unstable_Grid2';
@@ -19,7 +17,6 @@ import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
 import DataSkeleton from '../UtilComponent/DataSkeleton';
 import PageBackdrop from '../UtilComponent/PageBackdrop';
-import moment from 'moment';
 import GlassPanel from '../LiquidGlass/GlassPanel';
 import { transparentPaperSx } from '../../theme/glass';
 import usePixabayBackground from '../Utils/usePixabayBackground';
@@ -29,46 +26,14 @@ const ActivityPage = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const backgroundImageUrl = usePixabayBackground('abstract dark', 'computer');
-  const [activityState, setActivityState] = useState({
-    data: [],
-    filteredData: [],
-  });
 
-  const [minDate, setMinDate] = React.useState(moment());
-  const [selectedFromDate, setSelectedFromDate] = React.useState(moment());
-  const [selectedToDate, setSelectedToDate] = React.useState(moment());
+  // Left unset (no lower/upper bound) until the user picks a filter, so the
+  // table and total consumption both start out covering the full history.
+  const [selectedFromDate, setSelectedFromDate] = React.useState(null);
+  const [selectedToDate, setSelectedToDate] = React.useState(null);
 
+  const [totalConsumption, setTotalConsumption] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  // eslint-disable-next-line
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: 'left',
-    color: theme.palette.text.secondary,
-    maxWidth: '200px',
-  }));
-
-  const arraysEqual = (arr1, arr2) => {
-    if (arr1.length !== arr2.length) {
-      return false;
-    }
-
-    for (let i = 0; i < arr1.length; i++) {
-      const obj1 = arr1[i];
-      const obj2 = arr2[i];
-
-      // Compare properties of each object
-      for (const key in obj1) {
-        if (obj1[key] !== obj2[key]) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
 
   const handleDateChange = (date, setFunction) => {
     setFunction(date);
@@ -101,67 +66,44 @@ const ActivityPage = () => {
     checkAuth();
   }, [getToken, navigate]);
 
-  // Second useEffect for fetching activity data
+  // Total consumption is computed server-side (rate applied there too) so it
+  // stays correct even if the client changes; re-fetched whenever the date
+  // filter changes since the figure is scoped to the selected range.
   useEffect(() => {
-    const fetchData = async () => {
-      const url = hostUrl + '/activities';
+    let cancelled = false;
+
+    const fetchTotalConsumption = async () => {
+      const params = new URLSearchParams();
+      if (selectedFromDate) {
+        params.set('from', selectedFromDate.format('YYYY-MM-DD'));
+      }
+      if (selectedToDate) {
+        params.set('to', selectedToDate.format('YYYY-MM-DD'));
+      }
+
       try {
         const token = await getToken();
-        const response = await fetch(url, {
+        const response = await fetch(`${hostUrl}/activities/totalConsumption?${params.toString()}`, {
           method: 'GET',
           headers: getHeadersFromToken(token),
         });
+        const responseData = await response.json();
 
-        if (response.status === 200) {
-          const responseData = await response.json();
-          const activityData = responseData.payload;
-
-          const isEqual = arraysEqual(activityState.data, activityData);
-
-          if (!isEqual) {
-            const dates = activityData.map((item) => moment(item.startTime));
-            const smallestDate = moment.min(dates);
-            const sumOfDurations = activityData.reduce((acc, entry) => acc + entry.duration, 0);
-            setMinDate(smallestDate);
-            setSelectedFromDate(smallestDate);
-
-            setActivityState((prevActivityState) => {
-              return {
-                ...prevActivityState,
-                data: activityData,
-                filteredData: activityData,
-                filteredSumOfDurations: sumOfDurations,
-              }
-            });
-            setLoading(false);
-          }
+        if (!cancelled && response.status === 200) {
+          setTotalConsumption(responseData.payload.totalConsumption);
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Error making GET request:', error);
+        console.error('Error fetching total consumption:', error);
       }
     };
 
-    fetchData();
-  }, [activityState.data, getToken]);
+    fetchTotalConsumption();
 
-  //3rd useEffect to handle date change
-  useEffect(() => {
-    // Callback function to execute after state is updated
-    const filteredData = activityState.data.filter((item) => {
-      const startTime = moment(item.startTime);
-      const endTime = moment(item.endTime);
-
-      return (startTime.isSameOrAfter(selectedFromDate, 'day') && endTime.isSameOrBefore(selectedToDate, 'day')) || (item.endTime===null);
-    });
-    const sumOfDurations = filteredData.reduce((acc, entry) => acc + entry.duration, 0);
-    setActivityState((prevActivityState) => {
-      return {
-        ...prevActivityState,
-        filteredData: filteredData, 
-        filteredSumOfDurations: sumOfDurations
-      }
-    });
-  }, [selectedFromDate, selectedToDate, activityState.data]);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedFromDate, selectedToDate, getToken]);
 
   function ActivityPageSummary() {
     return (<React.Fragment>
@@ -182,7 +124,6 @@ const ActivityPage = () => {
                   sx={{ flex: 1, minWidth: 0 }}
                   label="From"
                   disableFuture={true}
-                  minDate={minDate}
                   defaultValue={selectedFromDate}
                   views={['year', 'month', 'day']}
                   onChange={(date) => handleDateChange(date, setSelectedFromDate)}
@@ -193,7 +134,7 @@ const ActivityPage = () => {
                   sx={{ flex: 1, minWidth: 0 }}
                   label="To"
                   disableFuture={true}
-                  minDate={selectedFromDate}
+                  minDate={selectedFromDate || undefined}
                   defaultValue={selectedToDate}
                   onChange={(date) => handleDateChange(date, setSelectedToDate)}
                   views={['year', 'month', 'day']}
@@ -239,7 +180,7 @@ const ActivityPage = () => {
                   alignItems={{ xs: 'center', sm: 'left' }}
                 >
                   <span>&#8377;</span>
-                  <AnimatedNumbersCustom num={((activityState.filteredSumOfDurations / 3600) * 6)} />
+                  <AnimatedNumbersCustom num={totalConsumption} />
                 </Stack>
               </Typography>
             </CardContent>
@@ -268,7 +209,7 @@ const ActivityPage = () => {
             }
             <Grid xs={12}>
               {
-                loading ? <DataSkeleton /> : <StickyHeadTable activityState={activityState} />
+                loading ? <DataSkeleton /> : <StickyHeadTable fromDate={selectedFromDate} toDate={selectedToDate} />
               }
             </Grid>
           </Grid>

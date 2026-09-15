@@ -18,6 +18,8 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import moment from 'moment';
 import GlassPanel from '../LiquidGlass/GlassPanel';
 import { transparentPaperSx } from '../../theme/glass';
+import { getHeadersFromToken, hostUrl } from '../Utils/Utils';
+import { useAuth } from '@clerk/clerk-react';
 
 
 const formatDate = (value) => {
@@ -59,8 +61,8 @@ const convertToTime = (value) => {
 const columns = [
   { id: 'startByOperator', label: 'Start By', minWidth: 100, format: (value) => value? value:"---", },
   { id: 'endByOperator', label: 'Stop By', minWidth: 100, format: (value) => value? value:"---", },
-  { id: 'startTime', label: 'Start\u00a0At', minWidth: 120, format: (value) => formatDate(value), },
-  { id: 'endTime', label: 'Stop\u00a0At', minWidth: 120, format: (value) => formatDate(value), },
+  { id: 'startTime', label: 'Start At', minWidth: 120, format: (value) => formatDate(value), },
+  { id: 'endTime', label: 'Stop At', minWidth: 120, format: (value) => formatDate(value), },
   {
     id: 'duration',
     label: 'Duration',
@@ -70,10 +72,13 @@ const columns = [
   },
 ];
 
-export default function StickyHeadTable({ activityState }) {
+export default function StickyHeadTable({ fromDate, toDate }) {
+  const { getToken } = useAuth();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
-  
+  const [rows, setRows] = React.useState([]);
+  const [totalCount, setTotalCount] = React.useState(0);
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -83,10 +88,56 @@ export default function StickyHeadTable({ activityState }) {
     setPage(0);
   };
 
+  // Reset back to the first page whenever the date filter changes, since the
+  // previously selected page may no longer exist in the new, filtered range.
+  React.useEffect(() => {
+    setPage(0);
+  }, [fromDate, toDate]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    const fetchActivities = async () => {
+      const params = new URLSearchParams({
+        page: String(page),
+        size: String(rowsPerPage),
+      });
+      if (fromDate) {
+        params.set('from', fromDate.format('YYYY-MM-DD'));
+      }
+      if (toDate) {
+        params.set('to', toDate.format('YYYY-MM-DD'));
+      }
+
+      try {
+        const token = await getToken();
+        const response = await fetch(`${hostUrl}/activities?${params.toString()}`, {
+          method: 'GET',
+          headers: getHeadersFromToken(token),
+        });
+        const responseData = await response.json();
+
+        if (!cancelled && response.status === 200) {
+          const pageData = responseData.payload;
+          setRows(pageData.content);
+          setTotalCount(pageData.totalElements);
+        }
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      }
+    };
+
+    fetchActivities();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [page, rowsPerPage, fromDate, toDate, getToken]);
+
   // eslint-disable-next-line
   function EnhancedTableToolbar(props) {
     const { numSelected } = props;
-  
+
     return (
       <Toolbar
         sx={{
@@ -117,7 +168,7 @@ export default function StickyHeadTable({ activityState }) {
             Activity
           </Typography>
         )}
-  
+
         {numSelected > 0 ? (
           <Tooltip title="Delete">
             <IconButton>
@@ -135,7 +186,7 @@ export default function StickyHeadTable({ activityState }) {
     );
   }
 
-  
+
 
   return (
     <GlassPanel borderRadius={20} sx={{ width: '100%' }}>
@@ -158,16 +209,14 @@ export default function StickyHeadTable({ activityState }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {activityState.filteredData
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
+            {rows.map((row) => {
                 return (
                   <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                     {columns.map((column) => {
                       const value = row[column.id];
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          {column.format 
+                          {column.format
                             ? column.format(value)
                             : value}
                         </TableCell>
@@ -182,7 +231,7 @@ export default function StickyHeadTable({ activityState }) {
       <TablePagination
         rowsPerPageOptions={[10, 25, 100]}
         component="div"
-        count={activityState.filteredData.length}
+        count={totalCount}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}

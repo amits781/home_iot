@@ -3,9 +3,11 @@ package com.aidyn.iot.dao;
 import com.aidyn.iot.entity.DeviceActivity;
 import com.aidyn.iot.repository.DeviceActivityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
@@ -23,7 +25,11 @@ public class DeviceActivityDao {
         return repository.save(entity);
     }
 
-    public List<DeviceActivity> getAllActivity() {
-        return repository.findAllByOrderByStartTimeDesc();
+    public Page<DeviceActivity> getActivities(LocalDateTime start, LocalDateTime end, Pageable pageable) {
+        return repository.findByDateRange(start, end, pageable);
+    }
+
+    public long getTotalDurationSeconds(LocalDateTime start, LocalDateTime end) {
+        return repository.sumDurationByDateRange(start, end);
     }
 }

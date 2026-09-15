@@ -3,7 +3,7 @@ pipeline {
     environment {
         BUILD_PYTHON = 'false'
         BUILD_REACT = 'true'
-        BUILD_SPRING = 'false'
+        BUILD_SPRING = 'true'
         DOPPLER_TOKEN = credentials('jenkins-doppler-service-token')
     }
     stages {

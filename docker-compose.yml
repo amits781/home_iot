@@ -1,0 +1,85 @@
+# Local dev orchestration for react_app, spring_boot_service, and
+# dummy_arduino (the mock device). Mirrors what the Jenkinsfile does with
+# `docker build`/`docker run` per service, translated to compose.
+#
+# docker-compose automatically loads ./.env (this file's directory) for
+# ${VAR} interpolation below — no --env-file flag needed as long as you run
+# `docker compose` from this directory.
+#
+# Each service's `environment:` list is deliberately explicit rather than a
+# blanket passthrough of every var in .env: react doesn't need the Spring DB
+# password, spring-boot doesn't need the Clerk key, etc. This is every var
+# each service actually uses (matching Jenkins), least-privilege by service,
+# not literally "all of .env into every container".
+#
+# Not provisioned here: MySQL. Jenkins doesn't stand up a DB either — it
+# points spring-boot at an already-running instance via SPRING_APP_MYSQL_*.
+# Point those at your own local/remote MySQL, or add a `mysql:` service
+# yourself if you want one managed here too.
+
+services:
+  react:
+    build:
+      context: ./react_app
+      args:
+        REACT_APP_PIXBAY_KEY: ${REACT_APP_PIXBAY_KEY}
+        REACT_APP_CLERK_PUBLISHABLE_KEY: ${REACT_APP_CLERK_PUBLISHABLE_KEY}
+        REACT_APP_HOST_URL: ${REACT_APP_HOST_URL}
+    image: react-iot:latest
+    container_name: iot-react
+    restart: unless-stopped
+    environment:
+      NEW_RELIC_LICENSE_KEY: ${REACT_APP_NEW_RELIC_LICENSE_KEY}
+      NEW_RELIC_APP_NAME: ${REACT_APP_NEW_RELIC_APP_NAME}
+    ports:
+      - "3000:3000"
+    networks:
+      - iotnet
+    depends_on:
+      - spring-boot
+
+  spring-boot:
+    build:
+      context: ./spring_boot_service
+    image: spring-boot-iot:latest
+    container_name: iot-spring-boot
+    restart: unless-stopped
+    environment:
+      ISS_URI: ${SPRING_APP_ISS_URI}
+      JWK_URI: ${SPRING_APP_JWK_URI}
+      MYSQL_HOST: ${SPRING_APP_MYSQL_HOST}
+      MYSQL_PORT: ${SPRING_APP_MYSQL_PORT}
+      DATABASE: ${SPRING_APP_DATABASE}
+      DB_USER: ${SPRING_APP_DB_USER}
+      DB_PASSWORD: ${SPRING_APP_DB_PASSWORD}
+      EMAIL_PASSWORD: ${SPRING_APP_EMAIL_PASSWORD}
+      SENDER_EMAIL: ${SPRING_APP_SENDER_EMAIL_ID}
+      SECRET_KEY: ${SPRING_APP_SECRET_KEY}
+      # Previously hardcoded in MotorConstants.java; now read from the
+      # environment (falls back to the real device's LAN IP if unset).
+      ARDUINO_HOST: ${ARDUINO_HOST}
+    ports:
+      - "8080:8080"
+    networks:
+      - iotnet
+    depends_on:
+      - dummy-arduino
+
+  dummy-arduino:
+    build:
+      context: ./dummy_arduino
+      args:
+        PORT: ${DUMMY_ARDUINO_PORT}
+    image: dummy-arduino:latest
+    container_name: iot-dummy-arduino
+    restart: unless-stopped
+    environment:
+      PORT: ${DUMMY_ARDUINO_PORT}
+    ports:
+      - "${DUMMY_ARDUINO_PORT}:${DUMMY_ARDUINO_PORT}"
+    networks:
+      - iotnet
+
+networks:
+  iotnet:
+    name: iotnet

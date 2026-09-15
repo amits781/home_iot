@@ -4,6 +4,7 @@ import com.aidyn.iot.dao.DeviceActivityDao;
 import com.aidyn.iot.dao.UserDao;
 import com.aidyn.iot.dto.AssistantRequestBody;
 import com.aidyn.iot.dto.MotorStatus;
+import com.aidyn.iot.dto.TotalConsumptionResponse;
 import com.aidyn.iot.entity.ArduinoDevice;
 import com.aidyn.iot.entity.ArduinoDevice.DeviceStatus;
 import com.aidyn.iot.entity.DeviceActivity;
@@ -16,11 +17,16 @@ import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -53,6 +59,11 @@ public class MotorService {
 
     @Value("${SECRET_KEY}")
     private String assistantSecret;
+
+    // Falls back to the real device's LAN address if ARDUINO_HOST isn't set, so
+    // existing deployments that don't set it keep working unchanged.
+    @Value("${ARDUINO_HOST:http://192.168.50.43}")
+    private String arduinoHost;
 
     /**
      * Send the required operation to arduino device (H/L)
@@ -277,7 +288,7 @@ public class MotorService {
             semaphore.acquire();
             // Make the GET request to the Arduino device.
             String response =
-                    restTemplate.getForObject(MotorConstants.ARDUINO_HOST + "/" + operation, String.class);
+                    restTemplate.getForObject(arduinoHost + "/" + operation, String.class);
             MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
             return motorStatus;
         } catch (InterruptedException e) {
@@ -307,7 +318,7 @@ public class MotorService {
             try {
                 semaphore.acquire();
                 String response = restTemplate.getForObject(
-                        MotorConstants.ARDUINO_HOST + "/" + MotorConstants.STATUS_API, String.class);
+                        arduinoHost + "/" + MotorConstants.STATUS_API, String.class);
                 MotorStatus motorStatus = gson.fromJson(response, MotorStatus.class);
                 // log.info("Motor Status: {}", motorStatus);
                 return motorStatus;
@@ -341,7 +352,26 @@ public class MotorService {
         return MotorStatus.builder().status(2).build();
     }
 
-    public List<DeviceActivity> getAllDeviceActivities() {
-        return deviceActivityDao.getAllActivity();
+    /**
+     * Earliest possible activity start, used when the caller doesn't supply a "from" date so the
+     * range query still covers the full history.
+     */
+    private static final LocalDateTime EARLIEST_POSSIBLE_ACTIVITY = LocalDateTime.of(2000, 1, 1, 0, 0);
+
+    public Page<DeviceActivity> getAllDeviceActivities(int page, int size, LocalDate from, LocalDate to) {
+        LocalDateTime start = from != null ? from.atStartOfDay() : EARLIEST_POSSIBLE_ACTIVITY;
+        LocalDateTime end = to != null ? to.atTime(LocalTime.MAX) : LocalDateTime.now();
+        // Ordering is already applied in the repository query itself; an unsorted Pageable avoids
+        // a redundant/duplicate ORDER BY being appended to that query.
+        Pageable pageable = PageRequest.of(page, size);
+        return deviceActivityDao.getActivities(start, end, pageable);
+    }
+
+    public TotalConsumptionResponse getTotalConsumption(LocalDate from, LocalDate to) {
+        LocalDateTime start = from != null ? from.atStartOfDay() : EARLIEST_POSSIBLE_ACTIVITY;
+        LocalDateTime end = to != null ? to.atTime(LocalTime.MAX) : LocalDateTime.now();
+        long totalDurationSeconds = deviceActivityDao.getTotalDurationSeconds(start, end);
+        double totalConsumption = (totalDurationSeconds / 3600.0) * MotorConstants.RATE_PER_HOUR;
+        return new TotalConsumptionResponse(totalConsumption, totalDurationSeconds);
     }
 }
