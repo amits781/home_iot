@@ -16,6 +16,7 @@ import {
 import TemporaryDrawer from '../DrawerSwipe/DrawerSwipe';
 import GlassSurface from '../LiquidGlass/GlassSurface';
 import { useAppBackground } from '../Utils/appBackground';
+import { useLocation } from 'react-router-dom';
 
 const pages = [];
 const siteName = 'AIDYN';
@@ -23,6 +24,11 @@ const siteName = 'AIDYN';
 function ResponsiveAppBar({ colorMode, theme }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const backgroundImageUrl = useAppBackground();
+
+  // ErrorPage is reached at /error (see UNAUTHORIZED_ROUTE in Utils/checkAuth),
+  // and only there does the header pick up the red alert glow.
+  const { pathname } = useLocation();
+  const isErrorPage = pathname.startsWith('/error');
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -165,6 +171,25 @@ function ResponsiveAppBar({ colorMode, theme }) {
         </Toolbar>
       </Container>
       </GlassSurface>
+
+      {/* Inset alert glow, error page only. It has to be its own layer drawn
+          *after* GlassSurface: an `inset` box-shadow on the header wrapper
+          would be painted underneath both the wallpaper copy and the glass
+          panel, so nothing of it would show. Absolutely positioned over the
+          panel with the same 24px radius, and pointer-events: none so it
+          never swallows a click on the menu or the avatar. */}
+      {isErrorPage && (
+        <Box
+          aria-hidden
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: '24px',
+            pointerEvents: 'none',
+            boxShadow: 'inset 0 0 28px 6px rgba(227, 64, 64, 0.5)',
+          }}
+        />
+      )}
     </Box>
   );
 }

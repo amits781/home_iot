@@ -5,11 +5,12 @@ import { CssBaseline, Grid } from '@mui/material';
 import IotCard from '../IotCard/IotCard';
 import { useAuth } from "@clerk/clerk-react";
 import { useEffect, useState } from 'react';
-import { getHeadersFromToken, hostUrl, navbarHeight } from '../Utils/Utils';
+import { navbarHeight } from '../Utils/Utils';
 import { useNavigate } from 'react-router-dom';
 import CardSkeleton from '../UtilComponent/CardSkeleton';
 import PageBackdrop from '../UtilComponent/PageBackdrop';
 import usePixabayBackground from '../Utils/usePixabayBackground';
+import { isAuthorized, UNAUTHORIZED_ROUTE } from '../Utils/checkAuth';
 
 
 
@@ -21,30 +22,40 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const backgroundImageUrl = usePixabayBackground('abstract dark', 'computer');
 
+  // Gate: the device card is only rendered once /checkAuth has actually
+  // confirmed the caller. On any failure we leave `loading` set, so the
+  // skeleton stays up and the card never mounts, and send the user to the
+  // error page instead.
   useEffect(() => {
+    let cancelled = false;
+
     const fetchData = async () => {
       try {
         const token = await getToken();
-        const url = hostUrl + '/checkAuth';
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: getHeadersFromToken(token),
-        });
+        const authorized = await isAuthorized(token);
 
-        if (response.status === 200) {
-          setLoading(false);
-        } else {
-          const responseData = await response.json();
-          console.log("Check Auth Fail: " + responseData.payload);
-          setLoading(false);
+        if (cancelled) {
+          return;
         }
+        if (!authorized) {
+          navigate(UNAUTHORIZED_ROUTE, { replace: true });
+          return;
+        }
+
+        setLoading(false);
       } catch (error) {
         console.log("Check Auth Fail: " + error.message);
-        setLoading(false);
+        if (!cancelled) {
+          navigate(UNAUTHORIZED_ROUTE, { replace: true });
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      cancelled = true;
+    };
   }, [getToken, navigate]);
 
   return (

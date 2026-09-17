@@ -19,6 +19,7 @@ import DataSkeleton from '../UtilComponent/DataSkeleton';
 import PageBackdrop from '../UtilComponent/PageBackdrop';
 import GlassSurface from '../LiquidGlass/GlassSurface';
 import usePixabayBackground from '../Utils/usePixabayBackground';
+import { isAuthorized, UNAUTHORIZED_ROUTE } from '../Utils/checkAuth';
 
 const ActivityPage = () => {
 
@@ -38,27 +39,33 @@ const ActivityPage = () => {
     setFunction(date);
   };
 
-  // First useEffect for authentication check
+  // Gate: /checkAuth has to confirm the caller before this page shows any
+  // activity data. A failure used to only get logged and the page carried on
+  // rendering; now it sends the user to the error page instead.
   useEffect(() => {
+    let cancelled = false;
+
     const checkAuth = async () => {
       try {
         const token = await getToken();
-        const url = hostUrl + '/checkAuth';
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: getHeadersFromToken(token),
-        });
+        const authorized = await isAuthorized(token);
 
-        if (response.status !== 200) {
-          const responseData = await response.json();
-          console.log("Check Auth Fail: " + responseData.payload);
+        if (!cancelled && !authorized) {
+          navigate(UNAUTHORIZED_ROUTE, { replace: true });
         }
       } catch (error) {
         console.log("Check Auth Fail: " + error.message);
+        if (!cancelled) {
+          navigate(UNAUTHORIZED_ROUTE, { replace: true });
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      cancelled = true;
+    };
   }, [getToken, navigate]);
 
   // Total consumption is computed server-side (rate applied there too) so it

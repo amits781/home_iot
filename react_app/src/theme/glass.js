@@ -41,6 +41,40 @@ export function glassOverlayStyle(mode) {
   };
 }
 
+// Tint used for destructive / alert actions (the motor's stop button, the
+// error page's retry button).
+export const GLASS_TINT_DANGER = '#d82a3f';
+export const GLASS_GLOW_DANGER = 'rgba(216, 42, 63, 0.55)';
+
+// Tinted glass pill for an action sitting on a GlassSurface: a translucent
+// colour wash instead of MUI's opaque `contained` fill, so the surface behind
+// still shows through. The glow belongs on the pill rather than on
+// GlassSurface's square outer wrapper, so the box-shadow follows the pill's
+// rounded corners instead of rendering as a square behind it.
+//
+// Appearance only - callers set their own size, since a full-width card
+// button and a compact inline one want very different metrics. IotCard keeps
+// its own identical private copy for the motor buttons.
+export function glassButtonSx(tintColor, glow) {
+  return {
+    borderRadius: 999,
+    color: '#fff',
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    background: `linear-gradient(180deg, ${tintColor}66 0%, ${tintColor}32 100%)`,
+    border: `1px solid ${tintColor}88`,
+    backdropFilter: 'blur(18px) saturate(160%)',
+    WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+    boxShadow: glow ? `0 0 30px 4px ${glow}` : 'inset 0 1px 0 rgba(255,255,255,0.16)',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      background: `linear-gradient(180deg, ${tintColor}7a 0%, ${tintColor}44 100%)`,
+      boxShadow: glow ? `0 0 28px 6px ${glow}` : 'inset 0 1px 0 rgba(255,255,255,0.22)',
+    },
+  };
+}
+
 // Neutralizes MUI Paper's own themed background/border/shadow so a real
 // GlassPanel wrapped around it is the only visible glass surface.
 export const transparentPaperSx = {
