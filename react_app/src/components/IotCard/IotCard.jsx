@@ -63,7 +63,7 @@ export default function IotCard() {
     buttonOnCondition: false,
     buttonOnDisable: true,
     buttonOffDisable: true,
-    loadingDisplay: 'block',
+    loading: true,
     refreshButtonClass: '',
     wifiStrength: 0,
   });
@@ -73,7 +73,7 @@ export default function IotCard() {
 
   const handleMotorOnButtonClick = async () => {
     // Disable the button while the API call is in progress
-    setIotState({ ...iotState, buttonOnDisable: true, loadingDisplay: 'block' });
+    setIotState({ ...iotState, buttonOnDisable: true, loading: true });
 
     const url = hostUrl + '/motorOn';
     getToken().then(token => {
@@ -86,14 +86,14 @@ export default function IotCard() {
         })
         .then((responseData) => {
           if (responseData.status === 200) {
-            setIotState({ ...iotState, buttonOffDisable: false, motorStatus: true, buttonOnCondition: true, loadingDisplay: 'hidden' });
+            setIotState({ ...iotState, buttonOffDisable: false, motorStatus: true, buttonOnCondition: true, loading: false });
           } else {
             console.log("Motor On Fail: " + responseData.payload);
-            setIotState({ ...iotState, buttonOnDisable: false, motorStatus: false, buttonOnCondition: false, loadingDisplay: 'hidden' });
+            setIotState({ ...iotState, buttonOnDisable: false, motorStatus: false, buttonOnCondition: false, loading: false });
           }
         })
         .catch((error) => {
-          setIotState({ ...iotState, buttonOnDisable: false, motorStatus: false, buttonOnCondition: false, loadingDisplay: 'hidden' });
+          setIotState({ ...iotState, buttonOnDisable: false, motorStatus: false, buttonOnCondition: false, loading: false });
           console.error('Error making GET request:', error);
         });
     });
@@ -102,7 +102,7 @@ export default function IotCard() {
 
   const handleMotorOffButtonClick = async () => {
     // Disable the button while the API call is in progress
-    setIotState({ ...iotState, buttonOffDisable: true, loadingDisplay: 'block' });
+    setIotState({ ...iotState, buttonOffDisable: true, loading: true });
 
     const url = hostUrl + '/motorOff';
     getToken().then(token => {
@@ -115,14 +115,14 @@ export default function IotCard() {
         })
         .then((responseData) => {
           if (responseData.status === 200) {
-            setIotState({ ...iotState, buttonOnDisable: false, motorStatus: false, buttonOnCondition: false, loadingDisplay: 'hidden' });
+            setIotState({ ...iotState, buttonOnDisable: false, motorStatus: false, buttonOnCondition: false, loading: false });
           } else {
             console.log("Motor Off Fail: " + responseData.payload);
-            setIotState({ ...iotState, buttonOffDisable: false, motorStatus: true, buttonOnCondition: true, loadingDisplay: 'hidden' });
+            setIotState({ ...iotState, buttonOffDisable: false, motorStatus: true, buttonOnCondition: true, loading: false });
           }
         })
         .catch((error) => {
-          setIotState({ ...iotState, buttonOffDisable: false, motorStatus: true, buttonOnCondition: true, loadingDisplay: 'hidden' });
+          setIotState({ ...iotState, buttonOffDisable: false, motorStatus: true, buttonOnCondition: true, loading: false });
           console.error('Error making GET request:', error);
         });
     });
@@ -157,7 +157,7 @@ export default function IotCard() {
               buttonOnCondition: buttonOnConditionValue,
               buttonOnDisable: buttonOnDisableValue,
               buttonOffDisable: buttonOffDisableValue,
-              loadingDisplay: 'hidden',
+              loading: false,
               wifiStrength: (responseData.payload.strength + 1),
             });
 
@@ -165,7 +165,7 @@ export default function IotCard() {
         })
         .catch((error) => {
           setIotState({
-            ...iotState, responseMessage: 'Server Error', loadingDisplay: 'hidden', buttonOnDisable: true, wifiStrength: null,
+            ...iotState, responseMessage: 'Server Error', loading: false, buttonOnDisable: true, wifiStrength: null,
             buttonOffDisable: true, deviceStatus: false
           });
           console.error('Error making GET request:', error);
@@ -214,6 +214,7 @@ export default function IotCard() {
     >
       <Box
         sx={{
+          position: 'relative',
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -221,9 +222,27 @@ export default function IotCard() {
           justifyContent: 'center',
         }}
       >
-        <Box sx={{ width: '100%', display: iotState.loadingDisplay }}>
-          <LinearProgress color="inherit" />
-        </Box>
+        {/* In-flight hairline, pinned to the card's top edge rather than
+            sitting in normal flow. The negative offsets cancel GlassSurface's
+            own '28px 32px' padding so the bar reaches the glass edge instead
+            of floating inside it, and the surrounding `.glass` clips it to the
+            28px corner radius so it follows the card's curve. Being absolute,
+            it also costs no layout height, so showing and hiding it no longer
+            shifts the card's contents. */}
+        {iotState.loading && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '-28px',
+              left: '-32px',
+              right: '-32px',
+              borderRadius: '28px 28px 0 0',
+              overflow: 'hidden',
+            }}
+          >
+            <LinearProgress sx={{ height: 3, backgroundColor: 'transparent' }} />
+          </Box>
+        )}
 
         <Box sx={{ pt: 1.5, pb: 0.5 }}>
           <Box

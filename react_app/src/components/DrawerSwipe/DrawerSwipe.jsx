@@ -10,7 +10,6 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import DeveloperBoardIcon from '@mui/icons-material/DeveloperBoard';
 import { IconButton, ListSubheader } from '@mui/material';
 import MyMenuItem from '../MyMenuItem/MyMenuItem';
-import GlassPanel from '../LiquidGlass/GlassPanel';
 
 export default function TemporaryDrawer() {
   const [state, setState] = React.useState({
@@ -84,31 +83,34 @@ export default function TemporaryDrawer() {
             anchor={anchor}
             open={state[anchor]}
             onClose={toggleDrawer(anchor, false)}
-            PaperProps={{
-              sx: {
-                backgroundColor: 'transparent',
-                backgroundImage: 'none',
-                boxShadow: 'none',
-                border: 'none',
+            // The drawer's Paper is already the glass surface: the theme's
+            // MuiPaper override gives it the translucent fill, the backdrop
+            // blur and the hairline border, and its backdrop-filter does
+            // resolve here.
+            //
+            // A GlassPanel used to be overlaid on top of it as well.
+            // liquid-glass-react sizes and centres its specular ring from a
+            // single measurement taken on mount, and inside the sliding drawer
+            // that ring landed offset from the panel it belongs to — so the
+            // drawer showed that ring *and* this Paper's own border as two
+            // nested outlines. (The panel's own glass ended up translated
+            // off-screen, so it contributed nothing but the stray outline.)
+            // The Paper is now the only surface, which leaves one border.
+            //
+            // Styled from the Drawer's `sx` rather than `PaperProps.sx`: the
+            // latter never reached the Paper at all here, which is why the
+            // `backgroundColor: 'transparent'` that used to sit in it had no
+            // effect.
+            sx={{
+              '& .MuiDrawer-paper': {
+                borderTopRightRadius: 24,
+                borderBottomRightRadius: 24,
+                borderLeft: 'none',
                 overflow: 'hidden',
               },
             }}
           >
-            {/*
-              This panel slides via CSS transform on every open/close, and a
-              full-height surface is a lot of area to re-run the SVG/backdrop
-              filter over each frame. Lighter blur/displacement here keeps
-              the slide smooth; the visual difference at this size is minor.
-            */}
-            <GlassPanel
-              borderRadius={24}
-              blur={8}
-              displacementScale={0.5}
-              sx={{ position: 'absolute', inset: 0, zIndex: 0 }}
-            />
-            <Box sx={{ position: 'relative', zIndex: 1 }}>
-              {list(anchor)}
-            </Box>
+            {list(anchor)}
           </Drawer>
         </React.Fragment>
       ))}

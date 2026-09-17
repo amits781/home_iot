@@ -15,12 +15,14 @@ import {
 } from "@clerk/clerk-react";
 import TemporaryDrawer from '../DrawerSwipe/DrawerSwipe';
 import GlassSurface from '../LiquidGlass/GlassSurface';
+import { useAppBackground } from '../Utils/appBackground';
 
 const pages = [];
 const siteName = 'AIDYN';
 
 function ResponsiveAppBar({ colorMode, theme }) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const backgroundImageUrl = useAppBackground();
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -41,6 +43,28 @@ function ResponsiveAppBar({ colorMode, theme }) {
         color: 'text.primary',
       }}
     >
+      {/* The header carries `zIndex: appBar` so it stays above the page's
+          fixed PageBackdrop, and that z-index makes it a stacking context —
+          which leaves the glass below with no backdrop to sample, so it
+          rendered as a flat dark bar. This paints the same wallpaper inside
+          that stacking context, clipped to the header. `backgroundAttachment:
+          fixed` sizes and positions the image against the viewport exactly as
+          PageBackdrop does, so the copy lines up with the page's own
+          wallpaper instead of showing a separate crop. */}
+      <Box
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '24px',
+          pointerEvents: 'none',
+          backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${backgroundImageUrl})`,
+          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
       <GlassSurface borderRadius={24} padding="0px 16px" sx={{ width: '100%' }}>
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ minHeight: { xs: 64, sm: 72 } }}>

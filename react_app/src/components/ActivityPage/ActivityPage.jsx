@@ -167,9 +167,18 @@ const ActivityPage = () => {
     <React.Fragment>
       <CssBaseline />
       <PageBackdrop imageUrl={backgroundImageUrl} />
+      {/* No `zIndex` here on purpose. A z-index on a positioned element makes
+          it a stacking context, and the glass panels inside it then have no
+          backdrop to sample: PageBackdrop is a sibling *outside* this
+          Container, so the wallpaper is not part of that stacking context and
+          `backdrop-filter` resolves against nothing, leaving every panel fully
+          transparent. HomePage keeps its z-index only because it renders
+          PageBackdrop *inside* the same stacking context. Paint order is
+          already correct without it: this Container is still positioned and
+          comes after PageBackdrop in the DOM, so it paints above the
+          wallpaper. */}
       <Container maxWidth={false} sx={{
         position: 'relative',
-        zIndex: 1,
         margin: 0,
         padding: '0px !important',
         overflow: 'auto',

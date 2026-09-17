@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { publishAppBackground } from './appBackground';
 
 const FALLBACK_IMAGE = '/static/rose_bg.jpeg';
 
@@ -41,6 +42,12 @@ export default function usePixabayBackground(query, category) {
       cancelled = true;
     };
   }, [query, category]);
+
+  // Mirror the resolved wallpaper into the shared store so the navbar can
+  // paint its own copy behind its glass. See appBackground.js for why.
+  useEffect(() => {
+    publishAppBackground(imageUrl);
+  }, [imageUrl]);
 
   return imageUrl;
 }

@@ -78,6 +78,7 @@ services:
     restart: unless-stopped
     environment:
       PORT: ${DUMMY_ARDUINO_PORT}
+      RESPONSE_DELAY_MS: ${DUMMY_ARDUINO_RESPONSE_DELAY_MS}
     ports:
       - "${DUMMY_ARDUINO_PORT}:${DUMMY_ARDUINO_PORT}"
     networks:

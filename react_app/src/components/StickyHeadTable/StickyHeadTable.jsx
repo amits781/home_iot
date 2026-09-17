@@ -57,6 +57,27 @@ const convertToTime = (value) => {
   return result.join(' ');
 };
 
+// Radius of the header's outer top corners. Smaller than the glass panel's
+// own 28px so the header reads as a pane sitting inside the panel rather than
+// fighting its curve.
+const HEADER_RADIUS = 16;
+
+// `stickyHeader` fills head cells with an opaque `palette.background.default`
+// so scrolled rows can't show through, which lands as a solid black rectangle
+// inside the rounded glass panel. Swap it for a translucent dark pane: the
+// blurred wallpaper the GlassSurface already refracts shows through it, and
+// rounding the first/last cell's outer top corner lets the bar follow the
+// panel instead of cutting a square out of it.
+const headCellSx = (isFirst, isLast) => ({
+  backgroundColor: 'rgba(0, 0, 0, 0.42)',
+  backdropFilter: 'blur(14px) saturate(140%)',
+  WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+  borderBottom: '1px solid rgba(255, 255, 255, 0.14)',
+  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.12)',
+  ...(isFirst && { borderTopLeftRadius: HEADER_RADIUS }),
+  ...(isLast && { borderTopRightRadius: HEADER_RADIUS }),
+});
+
 const columns = [
   { id: 'startByOperator', label: 'Start By', minWidth: 100, format: (value) => value? value:"---", },
   { id: 'endByOperator', label: 'Stop By', minWidth: 100, format: (value) => value? value:"---", },
@@ -188,17 +209,25 @@ export default function StickyHeadTable({ fromDate, toDate }) {
 
 
   return (
-    <GlassSurface borderRadius={28} sx={{ width: '100%' }}>
+    <GlassSurface padding='0px' borderRadius={28} sx={{ width: '100%' }}>
       <Box sx={{ width: '100%' }}>
         <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
+          {/* Cell border-radius is ignored under the default collapsed
+              border model, so the header's rounded corners need separated
+              borders; zero spacing keeps the rows looking identical. */}
+          <Table
+            stickyHeader
+            aria-label="sticky table"
+            sx={{ borderCollapse: 'separate', borderSpacing: 0 }}
+          >
             <TableHead>
               <TableRow>
-                {columns.map((column) => (
+                {columns.map((column, index) => (
                   <TableCell
                     key={column.id}
                     align={column.align}
                     style={{ minWidth: column.minWidth }}
+                    sx={headCellSx(index === 0, index === columns.length - 1)}
                   >
                     {column.label}
                   </TableCell>
