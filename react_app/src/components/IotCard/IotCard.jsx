@@ -17,29 +17,37 @@ import CachedRoundedIcon from '@mui/icons-material/CachedRounded';
 import IconButton from '@mui/material/IconButton';
 import { useAuth } from "@clerk/clerk-react";
 import WifiSignal from '../WifiSignal/WifiSignal';
-import GlassPanel from '../LiquidGlass/GlassPanel';
+import GlassSurface from '../LiquidGlass/GlassSurface';
 import { transparentPaperSx } from '../../theme/glass';
 
-// Tinted glass pill: sits on the GlassPanel's own blur/refraction, adding a
+// Tinted glass pill: sits on the GlassSurface's own blur/refraction, adding a
 // translucent colour wash instead of MUI's opaque `contained` fill so the
-// background still shows through. The glow lives here (not on GlassPanel's
+// background still shows through. The glow lives here (not on GlassSurface's
 // square outer wrapper) so its box-shadow follows the pill's own rounded
 // corners instead of rendering as a square behind it.
 const glassButtonSx = (tintColor, glow) => ({
-  width: { xs: '100%', sm: 'auto' },
+  width: '100%',
   px: 4,
+  minHeight: 52,
   borderRadius: 999,
   color: '#fff',
-  fontWeight: 600,
-  backgroundColor: `${tintColor}40`,
-  boxShadow: glow ? `0 0 28px 6px ${glow}` : 'none',
-  transition: 'box-shadow 0.3s ease, background-color 0.2s ease',
+  fontWeight: 700,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  background: `linear-gradient(180deg, ${tintColor}66 0%, ${tintColor}32 100%)`,
+  border: `1px solid ${tintColor}88`,
+  backdropFilter: 'blur(18px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(18px) saturate(160%)',
+  boxShadow: glow ? `0 0 30px 4px ${glow}` : 'inset 0 1px 0 rgba(255,255,255,0.16)',
+  transition: 'all 0.2s ease',
   '&:hover': {
-    backgroundColor: `${tintColor}5c`,
+    background: `linear-gradient(180deg, ${tintColor}7a 0%, ${tintColor}44 100%)`,
+    boxShadow: glow ? `0 0 28px 6px ${glow}` : 'inset 0 1px 0 rgba(255,255,255,0.22)',
   },
   '&.Mui-disabled': {
-    color: 'rgba(255,255,255,0.4)',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    color: 'rgba(255,255,255,0.42)',
+    background: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(255,255,255,0.08)',
     boxShadow: 'none',
   },
 });
@@ -197,28 +205,39 @@ export default function IotCard() {
   const turnOffDisabled = !iotState.buttonOnCondition || iotState.buttonOffDisable;
 
   return (
-    <GlassPanel borderRadius={28}>
-      <Card
-        raised={false}
+    <GlassSurface
+      borderRadius={28}
+      sx={{
+        width: { xs: 340, sm: 420, md: 460 },
+        minHeight: 430,
+      }}
+    >
+      <Box
         sx={{
-          width: { xs: 340, sm: 420, md: 460 },
-          ...transparentPaperSx,
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
         }}
       >
         <Box sx={{ width: '100%', display: iotState.loadingDisplay }}>
           <LinearProgress color="inherit" />
         </Box>
-        <CardContent sx={{ paddingTop: '12px', px: { xs: 3, sm: 4 } }}>
-          <Stack
-            direction={{ xs: 'row' }}
-            alignItems={{ xs: 'center' }}
-            justifyContent="space-between"
-            spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
-            sx={{ mb: 1 }}
-          >
 
+        <Box sx={{ pt: 1.5, pb: 0.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              gap: { xs: 1, sm: 2 },
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 1.5,
+            }}
+          >
             <WifiSignal iconName={iotState.wifiStrength} />
-            <Typography sx={{ fontSize: '0.8rem' }} color="text.secondary" gutterBottom>
+            <Typography sx={{ fontSize: '0.8rem', flexGrow: 1, textAlign: 'center' }} color="text.secondary">
               Device status: {iotState.deviceStatus ? 'On' : 'Device not Reachable'}
             </Typography>
             <IconButton
@@ -229,53 +248,50 @@ export default function IotCard() {
             >
               <CachedRoundedIcon fontSize="medium" />
             </IconButton>
+          </Box>
 
-          </Stack>
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={{ xs: 2, sm: 3, md: 4, lg: 5 }}
-            alignItems={{ xs: 'center' }}
-            sx={{ my: 2 }}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 3 },
+              alignItems: 'center',
+              my: 2,
+            }}
           >
             <Box>
-              <CycloneOutlinedIcon sx={{ fontSize: '130px', borderRadius: '65px' }} className={iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? "start-motor" : "stop-motor" : ""} />
+              <CycloneOutlinedIcon
+                sx={{ fontSize: '130px', borderRadius: '65px' }}
+                className={iotState.deviceStatus ? (iotState.buttonOnCondition || iotState.buttonOnDisable) ? 'start-motor' : 'stop-motor' : ''}
+              />
             </Box>
-            <Box>
-              <Typography variant="h6" sx={{
-                mb: 1, fontWeight: 600, textAlign: {
-                  xs: 'center',
-                  sm: 'left',
-                  md: 'left',
-                  lg: 'left',
-                }
-              }} color="text.secondary">
+            <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+              <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }} color="text.secondary">
                 House Pump
               </Typography>
-              <Typography sx={{
-                textAlign: {
-                  xs: 'center',
-                  sm: 'left',
-                  md: 'left',
-                  lg: 'left',
-                }
-              }} variant="body1">
+              <Typography variant="body1">
                 Motor Status is: {iotState.deviceStatus ? iotState.motorStatus ? 'On' : 'Off' : 'N/A'}
               </Typography>
             </Box>
-          </Stack>
-        </CardContent>
-        <CardActions sx={{ paddingBottom: '28px', px: { xs: 3, sm: 4 } }}>
-          <Stack
-            width={'100%'}
-            justifyContent="space-around"
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={{ xs: 2, sm: 3, md: 4, lg: 5 }}
-            alignItems={{ xs: 'center' }}
+          </Box>
+        </Box>
+
+        <Box sx={{ pb: 0.5, pt: 0.5 }}>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 2, sm: 2.5 },
+              justifyContent: 'space-around',
+              alignItems: 'center',
+            }}
           >
-            <GlassPanel
+            <GlassSurface
               borderRadius={999}
-              blur={10}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
+              padding="0px"
+              displacementScale={80}
+              sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { xs: 0, sm: 170 } }}
             >
               <Button
                 variant="text"
@@ -286,11 +302,12 @@ export default function IotCard() {
               >
                 Turn On
               </Button>
-            </GlassPanel>
-            <GlassPanel
+            </GlassSurface>
+            <GlassSurface
               borderRadius={999}
-              blur={10}
-              sx={{ width: { xs: '100%', sm: 'auto' } }}
+              padding="0px"
+              displacementScale={80}
+              sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { xs: 0, sm: 170 } }}
             >
               <Button
                 variant="text"
@@ -301,10 +318,10 @@ export default function IotCard() {
               >
                 Turn Off
               </Button>
-            </GlassPanel>
-          </Stack>
-        </CardActions>
-      </Card>
-    </GlassPanel>
+            </GlassSurface>
+          </Box>
+        </Box>
+      </Box>
+    </GlassSurface>
   );
 }

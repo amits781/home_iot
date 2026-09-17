@@ -1,0 +1,9 @@
+{
+  "name": "home-iot",
+  "private": true,
+  "scripts": {
+    "dev": "node react_app/scripts/dev-with-root-env.mjs",
+    "dev:local": "node react_app/scripts/dev-with-root-env.mjs",
+    "dev:app": "node react_app/scripts/dev-with-root-env.mjs"
+  }
+}

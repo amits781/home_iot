@@ -58,6 +58,9 @@ services:
       # Previously hardcoded in MotorConstants.java; now read from the
       # environment (falls back to the real device's LAN IP if unset).
       ARDUINO_HOST: ${ARDUINO_HOST}
+      # Not from Jenkins/Doppler — set to false in .env to skip sending real
+      # email during local dev; defaults to true (sends) if unset.
+      EMAIL_ENABLED: ${EMAIL_ENABLED}
     ports:
       - "8080:8080"
     networks:

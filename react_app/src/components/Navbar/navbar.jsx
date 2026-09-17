@@ -14,7 +14,7 @@ import {
   UserButton,
 } from "@clerk/clerk-react";
 import TemporaryDrawer from '../DrawerSwipe/DrawerSwipe';
-import GlassPanel from '../LiquidGlass/GlassPanel';
+import GlassSurface from '../LiquidGlass/GlassSurface';
 
 const pages = [];
 const siteName = 'AIDYN';
@@ -41,8 +41,8 @@ function ResponsiveAppBar({ colorMode, theme }) {
         color: 'text.primary',
       }}
     >
-      <GlassPanel borderRadius={24} sx={{ width: '100%' }}>
-      <Container maxWidth="false">
+      <GlassSurface borderRadius={24} padding="0px 16px" sx={{ width: '100%' }}>
+      <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ minHeight: { xs: 64, sm: 72 } }}>
           <TemporaryDrawer />
           {/* <HubTwoToneIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} /> */}
@@ -140,7 +140,7 @@ function ResponsiveAppBar({ colorMode, theme }) {
           </Box>
         </Toolbar>
       </Container>
-      </GlassPanel>
+      </GlassSurface>
     </Box>
   );
 }

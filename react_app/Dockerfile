@@ -19,8 +19,12 @@ ENV NEW_RELIC_DISTRIBUTED_TRACING_ENABLED=true
 ENV NEW_RELIC_LOG=stdout
 
 # Install deps (React + Express in one package.json)
+# --legacy-peer-deps: liquid-glass-react declares a peer dep on react>=19,
+# but its code only uses forwardRef/useId (both React 18-safe) — no
+# React-19-only APIs — so it works fine on our react@18. Same flag used for
+# local `npm install`; keeping this in sync avoids exactly this mismatch.
 COPY package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy rest of the code
 COPY public ./public

@@ -36,11 +36,11 @@ export default function HomePage() {
         } else {
           const responseData = await response.json();
           console.log("Check Auth Fail: " + responseData.payload);
-          navigate('/error?cause=user_unauthorized');
+          setLoading(false);
         }
       } catch (error) {
         console.log("Check Auth Fail: " + error.message);
-        navigate('/error?cause=unexpected_error');
+        setLoading(false);
       }
     };
 
@@ -49,6 +49,8 @@ export default function HomePage() {
 
   return (
     <Grid container component="main" sx={{
+      position: 'relative',
+      zIndex: 1,
       minHeight: `calc(100vh - ${navbarHeight}px)`,
       display: 'flex',
       flexDirection: 'column',
@@ -57,8 +59,8 @@ export default function HomePage() {
       <CssBaseline />
       <Box
         sx={{
-          width: "100%",
-          padding: "32px 20px",
+          width: '100%',
+          padding: '32px 20px',
           flexGrow: 1,
           display: 'flex',
           alignItems: 'center',
@@ -66,18 +68,21 @@ export default function HomePage() {
           overflow: 'auto',
         }}
       >
-
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={{ xs: 1, sm: 2, md: 4, lg: 6 }}
-          justifyContent={'center'}
-          alignItems={'center'}
+        <Box
+          sx={{
+            width: '100%',
+            maxWidth: 1120,
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1, sm: 2, md: 4, lg: 6 },
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
         >
           {
             loading ? <CardSkeleton /> : <IotCard />
           }
-
-        </Stack>
+        </Box>
       </Box>
     </Grid>
   );

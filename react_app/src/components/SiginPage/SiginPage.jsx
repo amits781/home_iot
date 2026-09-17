@@ -92,7 +92,7 @@ export default function SignInSide() {
 
   return (
     <Box component="main" sx={{
-      height: "100vh",
+      minHeight: '100vh',
       width: '100%',
       position: 'relative',
       display: 'flex',
@@ -100,24 +100,46 @@ export default function SignInSide() {
       justifyContent: 'center',
       overflow: 'hidden',
       backgroundColor: 'rgba(0,0,0,0.0)',
+      px: 2,
+      py: 4,
     }}>
       <video id="background-video" autoPlay loop muted src={videoSrc} typeof="video/mp4">
       </video>
       <Box sx={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.25)' }} />
       <CssBaseline />
-      <GlassPanel borderRadius={32} sx={{ position: 'relative', zIndex: 1, m: 2 }}>
+      <GlassPanel
+        cornerRadius={36}
+        blurAmount={0.4}
+        saturation={140}
+        displacementScale={100}
+        aberrationIntensity={2}
+        elasticity={0.0}
+        padding="28px 32px"
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 1,
+          width: 'min(440px, calc(100vw - 32px))',
+          minHeight: 420,
+          maxWidth: '100%',
+          display: 'block',
+        }}
+      >
         <Box
           sx={{
-            width: { xs: '80vw', sm: 440 },
+            width: '100%',
             px: { xs: 3, sm: 6 },
             py: { xs: 4, sm: 7 },
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             textAlign: 'center',
+            // background: 'transparent',
+            borderRadius: 'inherit',
           }}
         >
-
           <LockOutlinedIcon sx={{ fontSize: { xs: 40, sm: 66 }, mb: 1.5 }} />
           <Typography component="h1" variant="h4" sx={{
             fontFamily: 'monospace',

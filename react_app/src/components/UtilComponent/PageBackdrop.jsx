@@ -14,12 +14,15 @@ export default function PageBackdrop({ imageUrl }) {
       sx={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
-        backgroundImage: `url(${imageUrl})`,
+        zIndex: 0,
+        pointerEvents: 'none',
+        // Darkened with a gradient wash rather than `filter: brightness()`:
+        // a filter would make this element a backdrop root, and the glass
+        // panels above it would then have nothing to blur.
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${imageUrl})`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        filter: 'brightness(0.5)',
       }}
     />
   );

@@ -1,0 +1,47 @@
+/* liquid-glass-react is built for a single free-floating pill: it writes
+   `top/left: 50%` plus a `translate(-50%, -50%)` as inline styles on its
+   wrapper, and sizes the glass surface shrink-to-fit. The sign-in panel wants
+   exactly that. In normal document flow it instead paints every panel half its
+   own size up and to the left, and lets the surface grow to max-content (the
+   activity table stretched one to 3620px wide, off screen). Overriding needs
+   !important because the library's styles are inline. */
+
+.glass-surface-root {
+  position: relative;
+  display: flex;
+}
+
+.glass-surface {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.glass-surface > .glass {
+  display: flex !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* The library's content wrapper is a flex item that would otherwise size to
+   its content, leaving wide children (the table) short of the panel edge. */
+.glass-surface > .glass > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The highlight and shading layers are siblings of the panel, each sized from
+   a measurement taken once on mount. Pin them onto the panel so they stay
+   aligned when its content resizes. */
+.glass-surface-root > *:not(.glass-surface) {
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  transform: none !important;
+}

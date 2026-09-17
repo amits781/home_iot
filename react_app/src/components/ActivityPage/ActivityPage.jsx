@@ -8,7 +8,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import StickyHeadTable from '../StickyHeadTable/StickyHeadTable';
 import AnimatedNumbersCustom from '../AnimatedNumbers/AnimatedNumbers';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useState, useEffect } from 'react';
@@ -17,8 +17,7 @@ import { useAuth } from "@clerk/clerk-react";
 import { useNavigate } from 'react-router-dom';
 import DataSkeleton from '../UtilComponent/DataSkeleton';
 import PageBackdrop from '../UtilComponent/PageBackdrop';
-import GlassPanel from '../LiquidGlass/GlassPanel';
-import { transparentPaperSx } from '../../theme/glass';
+import GlassSurface from '../LiquidGlass/GlassSurface';
 import usePixabayBackground from '../Utils/usePixabayBackground';
 
 const ActivityPage = () => {
@@ -50,16 +49,12 @@ const ActivityPage = () => {
           headers: getHeadersFromToken(token),
         });
 
-        if (response.status === 200) {
-          // setLoading(false);
-        } else {
+        if (response.status !== 200) {
           const responseData = await response.json();
           console.log("Check Auth Fail: " + responseData.payload);
-          navigate('/error?cause=user_unauthorized');
         }
       } catch (error) {
         console.log("Check Auth Fail: " + error.message);
-        navigate('/error?cause=unexpected_error');
       }
     };
 
@@ -107,85 +102,63 @@ const ActivityPage = () => {
 
   function ActivityPageSummary() {
     return (<React.Fragment>
-      <Grid xs={12} md={8} display="flex" justifyContent="left" alignItems="left">
-        <GlassPanel borderRadius={20} sx={{ width: '100%' }}>
-          <Card sx={{
-            minWidth: { sm: 275, xs: '100%' },
-            overflow: 'auto',
-            textAlign: { xs: 'center', sm: 'left' },
-            ...transparentPaperSx,
-          }}>
-            <CardContent sx={{ py: 1.5 }}>
-              <Typography sx={{ fontSize: '0.8rem', marginBottom: 1 }} color="text.secondary" gutterBottom>
-                Filter Data
-              </Typography>
-              <Stack direction="row" spacing={1}>
-                <DatePicker
-                  sx={{ flex: 1, minWidth: 0 }}
-                  label="From"
-                  disableFuture={true}
-                  defaultValue={selectedFromDate}
-                  views={['year', 'month', 'day']}
-                  onChange={(date) => handleDateChange(date, setSelectedFromDate)}
-                  slotProps={{
-                    textField: { size: 'small' }
-                  }} />
-                <DatePicker
-                  sx={{ flex: 1, minWidth: 0 }}
-                  label="To"
-                  disableFuture={true}
-                  minDate={selectedFromDate || undefined}
-                  defaultValue={selectedToDate}
-                  onChange={(date) => handleDateChange(date, setSelectedToDate)}
-                  views={['year', 'month', 'day']}
-                  slotProps={{
-                    textField: { size: 'small' }
-                  }} />
-              </Stack>
-            </CardContent>
-          </Card>
-        </GlassPanel>
+      <Grid size={{ xs: 12, md: 8 }} sx={{ display: 'flex' }}>
+        <GlassSurface borderRadius={28} sx={{ width: '100%', minHeight: 120 }}>
+          <Box
+            sx={{
+              width: '100%',
+              textAlign: { xs: 'center', sm: 'left' },
+            }}
+          >
+            <Typography sx={{ fontSize: '0.8rem', marginBottom: 1 }} color="text.secondary" gutterBottom>
+              Filter Data
+            </Typography>
+            <Stack direction="row" spacing={1}>
+              <DatePicker
+                sx={{ flex: 1, minWidth: 0 }}
+                label="From"
+                disableFuture={true}
+                defaultValue={selectedFromDate}
+                views={['year', 'month', 'day']}
+                onChange={(date) => handleDateChange(date, setSelectedFromDate)}
+                slotProps={{ textField: { size: 'small' } }}
+              />
+              <DatePicker
+                sx={{ flex: 1, minWidth: 0 }}
+                label="To"
+                disableFuture={true}
+                minDate={selectedFromDate || undefined}
+                defaultValue={selectedToDate}
+                onChange={(date) => handleDateChange(date, setSelectedToDate)}
+                views={['year', 'month', 'day']}
+                slotProps={{ textField: { size: 'small' } }}
+              />
+            </Stack>
+          </Box>
+        </GlassSurface>
       </Grid>
-      <Grid xs={12} md={4} display="flex" justifyContent="right" alignItems="right">
-        {/*
-          The rupee figure animates continuously (spring-driven digit
-          ticks). Putting animating content *inside* a GlassPanel forces the
-          browser to recompute the expensive backdrop/SVG filter on every
-          animation frame. Keeping GlassPanel as a plain, static background
-          layer and the animating Card as a normal sibling on top lets the
-          browser composite them independently, so the glass is computed
-          once and only the (cheap, transform-based) number repaints.
-        */}
-        <Box sx={{ position: 'relative', width: '100%' }}>
-          <GlassPanel borderRadius={20} sx={{ position: 'absolute', inset: 0, zIndex: 0 }} />
-          <Card sx={{
-            position: 'relative',
-            zIndex: 1,
-            minWidth: { sm: 275, xs: '100%' },
-            overflow: 'auto',
-            textAlign: { xs: 'left' },
-            display: 'flex',
-            alignItems: 'center',
-            ...transparentPaperSx,
-          }}>
-            <CardContent>
+      <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex' }}>
+        <GlassSurface borderRadius={28} sx={{ width: '100%', minHeight: 120 }}>
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <Box>
               <Typography sx={{ fontSize: '0.8rem' }} color="text.secondary" gutterBottom>
                 Total consumption
               </Typography>
               <Typography variant='body' sx={{ fontSize: { xs: '2rem', sm: '4rem' } }}>
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  justifyContent={{ xs: 'center', sm: 'left' }}
-                  alignItems={{ xs: 'center', sm: 'left' }}
-                >
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1, justifyContent: { xs: 'center', sm: 'flex-start' }, alignItems: { xs: 'center', sm: 'flex-start' } }}>
                   <span>&#8377;</span>
                   <AnimatedNumbersCustom num={totalConsumption} />
-                </Stack>
+                </Box>
               </Typography>
-            </CardContent>
-          </Card>
-        </Box>
+            </Box>
+          </Box>
+        </GlassSurface>
       </Grid>
     </React.Fragment>);
   }
@@ -194,20 +167,23 @@ const ActivityPage = () => {
     <React.Fragment>
       <CssBaseline />
       <PageBackdrop imageUrl={backgroundImageUrl} />
-      <Container maxWidth="false" sx={{
+      <Container maxWidth={false} sx={{
+        position: 'relative',
+        zIndex: 1,
         margin: 0,
         padding: '0px !important',
         overflow: 'auto',
         minHeight: `calc(100vh - ${navbarHeight}px)`,
         display: 'flex',
-        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
-        <Box sx={{ flexGrow: 1, paddingTop: '20px', overflow: 'auto' }}>
-          <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }} sx={{ margin: '0 20px' }}>
+        <Box sx={{ width: '100%', maxWidth: 1280, margin: '20px auto', px: { xs: 1.5, sm: 2.5 } }}>
+          <Grid container rowSpacing={3} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
             {
               loading ? <React.Fragment /> : <ActivityPageSummary />
             }
-            <Grid xs={12}>
+            <Grid size={12}>
               {
                 loading ? <DataSkeleton /> : <StickyHeadTable fromDate={selectedFromDate} toDate={selectedToDate} />
               }
